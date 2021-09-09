@@ -7,6 +7,7 @@ pub struct ListMatcher<'a> {
     _matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> ListMatcher<'a> {}
 
 impl<'a> Matcher<'a> for ListMatcher<'a> {

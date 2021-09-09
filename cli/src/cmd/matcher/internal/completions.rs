@@ -13,6 +13,7 @@ pub struct CompletionsMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> CompletionsMatcher<'a> {
     /// Get the shells to generate completions for.
     pub fn shells(&'a self) -> Vec<Shell> {

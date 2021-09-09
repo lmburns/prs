@@ -7,6 +7,7 @@ pub struct RemoteMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> RemoteMatcher<'a> {
     /// Get the git URL to set.
     pub fn git_url(&self) -> Option<&str> {

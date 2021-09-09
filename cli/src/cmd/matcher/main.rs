@@ -7,6 +7,7 @@ pub struct MainMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> MainMatcher<'a> {
     /// Check whether to force.
     pub fn force(&self) -> bool {

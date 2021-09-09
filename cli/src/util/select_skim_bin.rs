@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::io::Write;
 use std::process::{Command, Stdio};
+use std::env;
 
 use prs_lib::{Key, Secret};
 
@@ -43,14 +44,21 @@ fn select_item<'a, S: AsRef<str>>(prompt: &'a str, items: &'a [S]) -> Option<Str
     items.sort_unstable();
 
     // Spawn skim
-    let mut child = Command::new(BIN_NAME)
+    let mut command = Command::new(BIN_NAME);
+    command
         .arg("--prompt")
         .arg(format!("{}: ", prompt))
         .arg("--height")
         .arg("50%")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
+        .stderr(Stdio::inherit());
+
+    if let Some(skim_opts) = env::var_os("SKIM_DEFAULT_OPTIONS") {
+        command.env("SKIM_DEFAULT_OPTIONS", skim_opts);
+    }
+
+    let mut child = command
         .spawn()
         .expect("failed to spawn skim");
 

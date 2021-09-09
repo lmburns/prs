@@ -9,6 +9,7 @@ pub struct ShowMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> ShowMatcher<'a> {
     /// Check whether to just show the first line of the secret.
     pub fn first_line(&self) -> bool {

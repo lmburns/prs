@@ -8,12 +8,10 @@ pub mod timeout;
 use clap::{Arg, ArgMatches};
 
 // Re-export to arg module
-pub use self::allow_dirty::ArgAllowDirty;
-pub use self::no_sync::ArgNoSync;
-pub use self::property::ArgProperty;
-pub use self::query::ArgQuery;
-pub use self::store::ArgStore;
-pub use self::timeout::ArgTimeout;
+pub use self::{
+    allow_dirty::ArgAllowDirty, no_sync::ArgNoSync, property::ArgProperty, query::ArgQuery,
+    store::ArgStore, timeout::ArgTimeout,
+};
 
 /// A generic trait, for a reusable command argument struct.
 /// The `CmdArgFlag` and `CmdArgOption` traits further specify what kind of
@@ -31,6 +29,8 @@ pub trait CmdArg {
 /// matches.
 pub trait CmdArgFlag: CmdArg {
     /// Check whether the argument is present in the given matches.
+    #[allow(single_use_lifetimes)]
+    #[allow(unused_lifetimes)]
     fn is_present<'a>(matches: &ArgMatches) -> bool {
         matches.is_present(Self::name())
     }
@@ -43,14 +43,20 @@ pub trait CmdArgOption<'a>: CmdArg {
     type Value;
 
     /// Get the argument value.
+    #[allow(single_use_lifetimes)]
+    #[allow(unused_lifetimes)]
     fn value<'b: 'a>(matches: &'a ArgMatches) -> Self::Value;
 
     /// Get the raw argument value, as a string reference.
+    #[allow(single_use_lifetimes)]
+    #[allow(unused_lifetimes)]
     fn value_raw<'b: 'a>(matches: &'a ArgMatches) -> Option<&'a str> {
         matches.value_of(Self::name())
     }
 
     /// Get the raw argument values, as a string reference.
+    #[allow(single_use_lifetimes)]
+    #[allow(unused_lifetimes)]
     fn values_raw<'b: 'a>(matches: &'a ArgMatches) -> Option<clap::Values<'a>> {
         matches.values_of(Self::name())
     }

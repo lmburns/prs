@@ -7,6 +7,7 @@ pub struct InitMatcher<'a> {
     _matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> InitMatcher<'a> {}
 
 impl<'a> Matcher<'a> for InitMatcher<'a> {

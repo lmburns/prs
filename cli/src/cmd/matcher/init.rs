@@ -8,6 +8,7 @@ pub struct InitMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> InitMatcher<'a> {
     /// The store.
     pub fn store(&self) -> String {

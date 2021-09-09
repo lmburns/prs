@@ -18,6 +18,7 @@ pub struct GenerateMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> GenerateMatcher<'a> {
     /// Secret name.
     pub fn name(&self) -> Option<&str> {

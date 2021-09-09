@@ -3,6 +3,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::sync::Mutex;
+use once_cell::sync::Lazy;
 
 use crate::git;
 
@@ -22,10 +23,8 @@ const SSH_PERSIST_CMD: &str = "ssh -o 'ControlMaster auto' -o 'ControlPath /tmp/
 /// A whitelist of SSH hosts that support connection persisting.
 const SSH_PERSIST_HOST_WHITELIST: [&str; 2] = ["github.com", "gitlab.com"];
 
-lazy_static! {
-    /// Cache for SSH connection persistence support guess.
-    static ref SSH_PERSIST_GUESS_CACHE: Mutex<HashMap<PathBuf, bool>> = Mutex::new(HashMap::new());
-}
+/// Cache for SSH connection persistence support guess.
+static SSH_PERSIST_GUESS_CACHE: Lazy<Mutex<HashMap<PathBuf, bool>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 
 /// Configure given git command to use SSH connection persisting.
 ///

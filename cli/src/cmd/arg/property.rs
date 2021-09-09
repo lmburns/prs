@@ -24,6 +24,7 @@ impl CmdArg for ArgProperty {
 impl<'a> CmdArgOption<'a> for ArgProperty {
     type Value = Option<&'a str>;
 
+    #[allow(unused_lifetimes)]
     fn value<'b: 'a>(matches: &'a ArgMatches) -> Self::Value {
         Self::value_raw(matches)
     }

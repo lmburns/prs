@@ -24,6 +24,7 @@ impl CmdArg for ArgStore {
 impl<'a> CmdArgOption<'a> for ArgStore {
     type Value = String;
 
+    #[allow(unused_lifetimes)]
     fn value<'b: 'a>(matches: &'a ArgMatches) -> Self::Value {
         Self::value_raw(matches)
             .filter(|p| !p.trim().is_empty())

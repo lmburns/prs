@@ -8,6 +8,7 @@ pub struct EditMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> EditMatcher<'a> {
     /// The secret query.
     pub fn query(&self) -> Option<String> {

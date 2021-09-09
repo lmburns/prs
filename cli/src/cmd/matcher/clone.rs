@@ -8,6 +8,7 @@ pub struct CloneMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> CloneMatcher<'a> {
     /// The git URL to clone from.
     pub fn git_url(&self) -> &str {

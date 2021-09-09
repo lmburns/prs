@@ -8,6 +8,7 @@ pub struct RunMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> RunMatcher<'a> {
     /// Whether to allow a dirty repository for syncing.
     pub fn allow_dirty(&self) -> bool {

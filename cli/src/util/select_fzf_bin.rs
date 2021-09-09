@@ -1,6 +1,9 @@
-use std::collections::HashMap;
-use std::io::Write;
-use std::process::{Command, Stdio};
+use std::{
+    collections::HashMap,
+    env,
+    io::Write,
+    process::{Command, Stdio},
+};
 
 use prs_lib::{Key, Secret};
 
@@ -43,14 +46,19 @@ fn select_item<'a, S: AsRef<str>>(prompt: &'a str, items: &'a [S]) -> Option<Str
     items.sort_unstable();
 
     // Spawn fzf
-    let mut child = Command::new(BIN_NAME)
+    let mut command = Command::new(BIN_NAME);
+    command
         .arg("--prompt")
         .arg(format!("{}: ", prompt))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
-        .spawn()
-        .expect("failed to spawn fzf");
+        .stderr(Stdio::inherit());
+
+    if let Some(fzf_opts) = env::var_os("FZF_DEFAULT_OPTS") {
+        command.env("FZF_DEFAULT_OPTS", fzf_opts);
+    }
+
+    let mut child = command.spawn().expect("failed to spawn fzf");
 
     // Communicate list of items to fzf
     let data = items.join("\n");

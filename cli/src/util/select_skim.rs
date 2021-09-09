@@ -1,6 +1,4 @@
-use std::borrow::Cow;
-use std::path::PathBuf;
-use std::sync::Arc;
+use std::{borrow::Cow, path::PathBuf, sync::Arc};
 
 use prs_lib::{Key, Secret};
 use skim::{
@@ -9,12 +7,87 @@ use skim::{
 };
 
 /// Show an interactive selection view for the given list of `items`.
-/// The selected item is returned.  If no item is selected, `None` is returned instead.
+/// The selected item is returned.  If no item is selected, `None` is returned
+/// instead.
 fn skim_select(items: SkimItemReceiver, prompt: &str) -> Option<String> {
+    let mut skim_args = Vec::new();
+    let default_height = String::from("50%");
+    let default_margin = String::from("0%");
+    let default_layout = String::from("default");
+    let default_theme = String::from(
+        "matched:108,matched_bg:0,current:254,current_bg:236,current_match:151,current_match_bg:\
+         236,spinner:148,info:144,prompt:110,cursor:161,selected:168,header:109,border:59",
+    );
+
+    skim_args.extend(
+        std::env::var("SKIM_DEFAULT_OPTIONS")
+            .ok()
+            .and_then(|val| shlex::split(&val))
+            .unwrap_or_default(),
+    );
+    // For the  --color option, try and not pickup --preview, which can contain
+    // '--color' (e.g., 'bat --color=always {}'). Could also check next item in
+    // vector if item only equals '--color'.
     let prompt = format!("{}: ", prompt);
     let options = SkimOptionsBuilder::default()
         .prompt(Some(&prompt))
-        .height(Some("50%"))
+        .margin(Some(
+            skim_args
+                .iter()
+                .find(|arg| arg.contains("--margin") && *arg != &"--margin".to_string())
+                .unwrap_or_else(|| {
+                    skim_args
+                        .iter()
+                        .position(|arg| arg.contains("--margin"))
+                        .map_or(&default_margin, |pos| &skim_args[pos + 1])
+                }),
+        ))
+        .height(Some(
+            skim_args
+                .iter()
+                .find(|arg| arg.contains("--height") && *arg != &"--height".to_string())
+                .unwrap_or_else(|| {
+                    skim_args
+                        .iter()
+                        .position(|arg| arg.contains("--height"))
+                        .map_or(&default_height, |pos| &skim_args[pos + 1])
+                }),
+        ))
+        .layout(
+            skim_args
+                .iter()
+                .find(|arg| arg.contains("--layout") && *arg != &"--layout".to_string())
+                .unwrap_or_else(|| {
+                    skim_args
+                        .iter()
+                        .position(|arg| arg.contains("--layout"))
+                        .map_or(&default_layout, |pos| &skim_args[pos + 1])
+                }),
+        )
+        .color(Some(
+            skim_args
+                .iter()
+                .find(|arg| {
+                    arg.contains("--color") && *arg != &"--color".to_string() && !arg.contains("{}")
+                })
+                .unwrap_or_else(|| {
+                    skim_args
+                        .iter()
+                        .position(|arg| arg.contains("--color"))
+                        .map_or(&default_theme, |pos| &skim_args[pos + 1])
+                }),
+        ))
+        .bind(
+            skim_args
+                .iter()
+                .filter(|arg| arg.contains("--bind"))
+                .map(String::as_str)
+                .collect::<Vec<_>>(),
+        )
+        .reverse(skim_args.iter().any(|arg| arg.contains("--reverse")))
+        .tac(skim_args.iter().any(|arg| arg.contains("--tac")))
+        .nosort(skim_args.iter().any(|arg| arg.contains("--no-sort")))
+        .inline_info(skim_args.iter().any(|arg| arg.contains("--inline-info")))
         .multi(false)
         .build()
         .unwrap();

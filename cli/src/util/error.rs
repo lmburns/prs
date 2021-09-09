@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 use std::fmt::{Debug, Display};
 use std::io::{self, Write};
+use derive_builder::Builder;
 pub use std::process::exit;
 
 use anyhow::anyhow;

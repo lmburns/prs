@@ -1,11 +1,10 @@
 use clap::{App, Arg};
+use once_cell::sync::Lazy;
 
 use crate::util::time;
 
-lazy_static! {
-    /// Default value for timer.
-    static ref TIMER_DEFAULT: String = time::format_duration(prs_lib::tomb::TOMB_AUTO_CLOSE_SEC);
-}
+/// Default value for timer.
+static TIMER_DEFAULT: Lazy<String> = Lazy::new(|| time::format_duration(prs_lib::tomb::TOMB_AUTO_CLOSE_SEC));
 
 /// The tomb init command definition.
 pub struct CmdInit;

@@ -7,6 +7,7 @@ pub struct ExportMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> ExportMatcher<'a> {
     /// File to output to.
     pub fn output_file(&self) -> Option<&str> {

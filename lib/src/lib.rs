@@ -17,8 +17,6 @@ extern crate quickcheck;
 #[cfg(test)]
 #[macro_use(quickcheck)]
 extern crate quickcheck_macros;
-#[macro_use]
-extern crate lazy_static;
 
 // Re-exports
 pub use crypto::{recipients::Recipients, Key};

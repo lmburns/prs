@@ -8,6 +8,7 @@ pub struct RemoveMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> RemoveMatcher<'a> {
     /// Check whether to re-encrypt secrets.
     pub fn recrypt(&self) -> bool {

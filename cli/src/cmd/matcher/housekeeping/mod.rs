@@ -14,6 +14,7 @@ pub struct HousekeepingMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> HousekeepingMatcher<'a> {
     /// Get the housekepeing recrypt sub command, if matched.
     pub fn recrypt(&'a self) -> Option<recrypt::RecryptMatcher> {

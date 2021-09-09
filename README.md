@@ -10,6 +10,13 @@
 
 # prs
 
+# TODO:
+* `pass-vera`
+* Change listing to colors
+* Support `TOTP` codes
+* Support `pwned`
+* Add attributes from CLI?
+
 > A secure, fast & convenient password manager CLI using GPG and git to sync.
 
 `prs` is a secure, fast and convenient password manager for the terminal.
@@ -18,7 +25,7 @@ It features [GPG][gpg] to securely store your secrets and integrates
 features a built-in password generator, recipient management, history tracking,
 rollbacks, housekeeping utilities, Tomb support and more.
 
-[![prs usage demo][usage-demo-svg]][usage-demo-asciinema]  
+[![prs usage demo][usage-demo-svg]][usage-demo-asciinema]
 _No demo visible here? View it on [asciinema][usage-demo-asciinema]._
 
 `prs` is heavily inspired by [`pass`][pass] and uses the same file structure
@@ -257,7 +264,7 @@ See the operating system/distribution specific instructions below:
 
 #### Linux: Arch AUR packages
 
-[» `prs`](https://aur.archlinux.org/packages/prs/) (compiles from source, latest release)  
+[» `prs`](https://aur.archlinux.org/packages/prs/) (compiles from source, latest release)
 [» `prs-git`](https://aur.archlinux.org/packages/prs-git/) (compiles from source, latest `master` commit)
 
 ```bash
@@ -419,7 +426,7 @@ The protection against leaking secrets has its boundaries, notably:
 - `prs copy` copies secret data to your clipboard, and clears it after 20
   seconds
 
-[![Security](./res/xkcd_538.png)][xkcd538]  
+[![Security](./res/xkcd_538.png)][xkcd538]
 _Reference: [XKCD 538][xkcd538]_
 
 Note: `prs` does not provide any warranty in any way, shape or form for damage

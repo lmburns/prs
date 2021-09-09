@@ -17,7 +17,7 @@ impl CmdCompletions {
                 Arg::new("SHELL")
                     .about("Shell type to generate completions for")
                     .required(true)
-                    .multiple(true)
+                    .multiple_values(true)
                     .takes_value(true)
                     .possible_value("all")
                     .possible_values(&shell_variants)

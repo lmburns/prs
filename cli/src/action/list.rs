@@ -4,6 +4,7 @@ use anyhow::Result;
 use clap::ArgMatches;
 use prs_lib::{store::SecretIterConfig, Secret, Store};
 use text_trees::{FormatCharacters, StringTreeNode, TreeFormatting};
+use colored::*;
 use thiserror::Error;
 
 #[cfg(all(feature = "tomb", target_os = "linux"))]
@@ -137,7 +138,7 @@ fn tree_nodes(prefix: &str, mut secrets: &[&str]) -> Vec<StringTreeNode> {
         let (children, todo) = secrets.split_at(next_child_name);
         secrets = todo;
         nodes.push(StringTreeNode::with_child_nodes(
-            child_name.into(),
+            child_name.red().to_string().into(),
             tree_nodes(&child_prefix, children).into_iter(),
         ));
     }

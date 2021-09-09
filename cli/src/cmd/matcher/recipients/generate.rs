@@ -8,6 +8,7 @@ pub struct GenerateMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> GenerateMatcher<'a> {
     /// Check whether to skip adding key to store.
     pub fn no_add(&self) -> bool {

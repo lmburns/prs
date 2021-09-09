@@ -8,6 +8,7 @@ pub struct AddMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> AddMatcher<'a> {
     /// Check whether to skip re-encrypting secrets.
     pub fn no_recrypt(&self) -> bool {

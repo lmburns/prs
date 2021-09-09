@@ -25,6 +25,7 @@ pub mod tomb;
 use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use clap::crate_name;
 
 use crate::util::error::{quit_error_msg, ErrorHints};
 

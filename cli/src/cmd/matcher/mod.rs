@@ -14,6 +14,7 @@ pub mod internal;
 pub mod list;
 pub mod main;
 pub mod r#move;
+pub mod otp;
 pub mod recipients;
 pub mod remove;
 pub mod show;
@@ -22,31 +23,37 @@ pub mod sync;
 pub mod tomb;
 
 // Re-export to matcher module
-pub use self::add::AddMatcher;
 #[cfg(feature = "alias")]
 pub use self::alias::AliasMatcher;
-pub use self::clone::CloneMatcher;
 #[cfg(feature = "clipboard")]
 pub use self::copy::CopyMatcher;
-pub use self::duplicate::DuplicateMatcher;
-pub use self::edit::EditMatcher;
-pub use self::generate::GenerateMatcher;
-pub use self::git::GitMatcher;
-pub use self::housekeeping::HousekeepingMatcher;
-pub use self::init::InitMatcher;
-pub use self::internal::InternalMatcher;
-pub use self::list::ListMatcher;
-pub use self::main::MainMatcher;
-pub use self::r#move::MoveMatcher;
-pub use self::recipients::RecipientsMatcher;
-pub use self::remove::RemoveMatcher;
-pub use self::show::ShowMatcher;
-pub use self::sync::SyncMatcher;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 pub use self::tomb::TombMatcher;
+#[rustfmt::skip]
+pub use self::{
+    add::AddMatcher,
+    clone::CloneMatcher,
+    duplicate::DuplicateMatcher,
+    edit::EditMatcher,
+    generate::GenerateMatcher,
+    git::GitMatcher,
+    housekeeping::HousekeepingMatcher,
+    init::InitMatcher,
+    internal::InternalMatcher,
+    list::ListMatcher,
+    main::MainMatcher,
+    otp::OtpMatcher,
+    r#move::MoveMatcher,
+    recipients::RecipientsMatcher,
+    remove::RemoveMatcher,
+    show::ShowMatcher,
+    sync::SyncMatcher,
+
+};
 
 use clap::ArgMatches;
 
+#[allow(single_use_lifetimes)]
 pub trait Matcher<'a>: Sized {
     // Construct a new matcher instance from these argument matches.
     fn with(matches: &'a ArgMatches) -> Option<Self>;

@@ -8,6 +8,7 @@ pub struct ListMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> ListMatcher<'a> {
     /// The secret query.
     pub fn query(&self) -> Option<String> {

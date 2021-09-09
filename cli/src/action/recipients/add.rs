@@ -62,6 +62,7 @@ impl<'a> Add<'a> {
         );
         tmp.remove_all(recipients.keys());
         let key = select::select_key(tmp.keys(), None).ok_or(Err::NoneSelected)?;
+
         recipients.add(key.clone());
         recipients.save(&store)?;
 

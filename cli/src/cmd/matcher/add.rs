@@ -8,6 +8,7 @@ pub struct AddMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> AddMatcher<'a> {
     /// Secret destination.
     pub fn name(&self) -> &str {

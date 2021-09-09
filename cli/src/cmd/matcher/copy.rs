@@ -9,6 +9,7 @@ pub struct CopyMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> CopyMatcher<'a> {
     /// Check whether to copy all of the secret.
     pub fn all(&self) -> bool {

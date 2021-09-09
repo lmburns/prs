@@ -12,6 +12,7 @@ pub struct InternalMatcher<'a> {
     _matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> InternalMatcher<'a> {
     /// Get the internal clipboard revert sub command, if matched.
     #[cfg(feature = "clipboard")]

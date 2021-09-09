@@ -13,6 +13,7 @@ pub mod init;
 pub mod internal;
 pub mod list;
 pub mod r#move;
+pub mod otp;
 pub mod recipients;
 pub mod remove;
 pub mod show;
@@ -21,24 +22,28 @@ pub mod sync;
 pub mod tomb;
 
 // Re-export to cmd module
-pub use self::add::CmdAdd;
 #[cfg(feature = "alias")]
 pub use self::alias::CmdAlias;
-pub use self::clone::CmdClone;
 #[cfg(feature = "clipboard")]
 pub use self::copy::CmdCopy;
-pub use self::duplicate::CmdDuplicate;
-pub use self::edit::CmdEdit;
-pub use self::generate::CmdGenerate;
-pub use self::git::CmdGit;
-pub use self::housekeeping::CmdHousekeeping;
-pub use self::init::CmdInit;
-pub use self::internal::CmdInternal;
-pub use self::list::CmdList;
-pub use self::r#move::CmdMove;
-pub use self::recipients::CmdRecipients;
-pub use self::remove::CmdRemove;
-pub use self::show::CmdShow;
-pub use self::sync::CmdSync;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 pub use self::tomb::CmdTomb;
+#[rustfmt::skip]
+pub use self::{
+    add::CmdAdd,
+    clone::CmdClone,
+    duplicate::CmdDuplicate,
+    edit::CmdEdit,
+    generate::CmdGenerate,
+    git::CmdGit,
+    housekeeping::CmdHousekeeping,
+    init::CmdInit,
+    internal::CmdInternal,
+    list::CmdList,
+    otp::CmdOtp,
+    r#move::CmdMove,
+    recipients::CmdRecipients,
+    remove::CmdRemove,
+    show::CmdShow,
+    sync::CmdSync,
+};

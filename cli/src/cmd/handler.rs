@@ -1,7 +1,13 @@
-use clap::{App, AppSettings, Arg, ArgMatches};
+use clap::{
+    crate_authors, crate_description, crate_name, crate_version, App, AppSettings, Arg, ArgMatches,
+};
 
-use super::matcher::{self, Matcher};
-use super::subcmd;
+use super::{
+    matcher::{self, Matcher},
+    subcmd,
+};
+
+use std::env;
 
 /// CLI argument handler.
 pub struct Handler {
@@ -12,13 +18,20 @@ pub struct Handler {
 impl<'a> Handler {
     /// Build the application CLI definition.
     pub fn build() -> App<'a> {
+        // Disable color usage if compiled without color support
+        let clap_app_color = if env::var_os("NO_COLOR").is_none() {
+            AppSettings::ColoredHelp
+        } else {
+            AppSettings::ColorNever
+        };
         // Build the CLI application definition
         let app = App::new(crate_name!())
             .version(crate_version!())
             .author(crate_authors!())
             .about(crate_description!())
-            .global_setting(AppSettings::GlobalVersion)
-            .global_setting(AppSettings::VersionlessSubcommands)
+            .global_setting(clap_app_color)
+            .global_setting(AppSettings::PropagateVersion)
+            .global_setting(AppSettings::DisableVersionForSubcommands)
             .arg(
                 Arg::new("force")
                     .long("force")
@@ -54,7 +67,7 @@ impl<'a> Handler {
                 Arg::new("verbose")
                     .long("verbose")
                     .short('v')
-                    .multiple(true)
+                    .multiple_occurrences(true)
                     .global(true)
                     .takes_value(false)
                     .about("Enable verbose information and logging"),
@@ -76,6 +89,7 @@ impl<'a> Handler {
             .subcommand(subcmd::CmdInternal::build())
             .subcommand(subcmd::CmdList::build())
             .subcommand(subcmd::CmdMove::build())
+            .subcommand(subcmd::CmdOtp::build())
             .subcommand(subcmd::CmdRecipients::build())
             .subcommand(subcmd::CmdRemove::build())
             .subcommand(subcmd::CmdShow::build())
@@ -89,11 +103,6 @@ impl<'a> Handler {
 
         #[cfg(all(feature = "tomb", target_os = "linux"))]
         let app = app.subcommand(subcmd::CmdTomb::build());
-
-        // Disable color usage if compiled without color support
-        // TODO: do not use feature, pull from env var instead
-        #[cfg(feature = "no-color")]
-        let app = app.global_setting(AppSettings::ColorNever);
 
         app
     }

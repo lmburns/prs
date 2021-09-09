@@ -9,6 +9,7 @@ pub struct ClipRevertMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> ClipRevertMatcher<'a> {
     /// Check whether to read previous clipboard contents from stdin as base64 line.
     pub fn previous_base64_stdin(&self) -> bool {

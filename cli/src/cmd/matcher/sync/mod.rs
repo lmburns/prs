@@ -12,6 +12,7 @@ pub struct SyncMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> SyncMatcher<'a> {
     /// Get the sync init sub command, if matched.
     pub fn cmd_init(&'a self) -> Option<init::InitMatcher> {

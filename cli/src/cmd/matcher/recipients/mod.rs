@@ -16,6 +16,7 @@ pub struct RecipientsMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> RecipientsMatcher<'a> {
     /// Get the recipient add sub command, if matched.
     pub fn cmd_add(&'a self) -> Option<add::AddMatcher> {

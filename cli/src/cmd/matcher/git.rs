@@ -8,6 +8,7 @@ pub struct GitMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
+#[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> GitMatcher<'a> {
     /// Get the git command to invoke.
     pub fn command(&self) -> String {
