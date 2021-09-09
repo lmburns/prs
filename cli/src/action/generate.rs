@@ -6,12 +6,14 @@ use clap::ArgMatches;
 use prs_lib::{crypto::prelude::*, Plaintext, Secret, Store};
 use thiserror::Error;
 
-use crate::cmd::matcher::{generate::GenerateMatcher, MainMatcher, Matcher};
 #[cfg(feature = "clipboard")]
 use crate::util::clipboard;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 use crate::util::tomb;
-use crate::util::{cli, edit, error, pass, secret, select, stdin, sync};
+use crate::{
+    cmd::matcher::{generate::GenerateMatcher, MainMatcher, Matcher},
+    util::{cli, edit, error, pass, secret, select, stdin, sync},
+};
 
 /// Generate secret action.
 pub struct Generate<'a> {
@@ -72,7 +74,7 @@ impl<'a> Generate<'a> {
                     }
 
                     Some((path, secret))
-                }
+                },
                 None => None,
             }
         };
@@ -121,14 +123,15 @@ impl<'a> Generate<'a> {
         }
 
         // Confirm if empty secret should be stored
-        if !matcher_main.force() && plaintext.is_empty() {
-            if !cli::prompt_yes(
+        if !matcher_main.force()
+            && plaintext.is_empty()
+            && !cli::prompt_yes(
                 "Generated secret is empty. Save?",
                 Some(true),
                 &matcher_main,
-            ) {
-                error::quit();
-            }
+            )
+        {
+            error::quit();
         }
 
         // Encrypt and write changed plaintext if we need to store
@@ -186,7 +189,8 @@ impl<'a> Generate<'a> {
 
 /// Generate a random password.
 ///
-/// This generates a secure random password/passphrase based on user configuration.
+/// This generates a secure random password/passphrase based on user
+/// configuration.
 fn generate_password(matcher_generate: &GenerateMatcher) -> Plaintext {
     if matcher_generate.passphrase() {
         let mut config = BasicConfig::default();

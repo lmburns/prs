@@ -1,8 +1,10 @@
-use std::borrow::Borrow;
-use std::fmt::{Debug, Display};
-use std::io::{self, Write};
 use derive_builder::Builder;
 pub use std::process::exit;
+use std::{
+    borrow::Borrow,
+    fmt::{Debug, Display},
+    io::{self, Write},
+};
 
 use anyhow::anyhow;
 
@@ -33,11 +35,7 @@ pub fn print_error(err: anyhow::Error) {
 
     // Fall back to a basic message
     if count == 0 {
-        eprintln!(
-            "{} {}",
-            highlight_error("error:"),
-            "an undefined error occurred"
-        );
+        eprintln!("{} an undefined error occurred", highlight_error("error:"),);
     }
 }
 
@@ -202,15 +200,15 @@ impl ErrorHints {
 impl Default for ErrorHints {
     fn default() -> Self {
         ErrorHints {
-            info: Vec::new(),
-            sync: false,
-            sync_init: false,
+            info:        Vec::new(),
+            sync:        false,
+            sync_init:   false,
             sync_remote: false,
-            git: false,
+            git:         false,
             allow_dirty: false,
-            force: false,
-            verbose: true,
-            help: true,
+            force:       false,
+            verbose:     true,
+            help:        true,
         }
     }
 }

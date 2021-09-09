@@ -53,10 +53,10 @@ impl<'a> Add<'a> {
 
         // Find unused keys, select one and add to recipients
         let mut tmp = Recipients::from(
-            if !matcher_add.secret() {
-                context.keys_public()
-            } else {
+            if matcher_add.secret() {
                 context.keys_private()
+            } else {
+                context.keys_public()
             }
             .map_err(Err::Load)?,
         );
@@ -73,10 +73,8 @@ impl<'a> Add<'a> {
                 crate::action::housekeeping::recrypt::recrypt_all(&store, &matcher_main)
                     .map_err(Err::Recrypt)?;
             }
-        } else {
-            if !matcher_main.quiet() {
+        } else if !matcher_main.quiet() {
                 cannot_decrypt_show_recrypt_hints();
-            }
         }
 
         // Finalize sync

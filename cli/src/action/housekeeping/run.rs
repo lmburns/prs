@@ -11,9 +11,9 @@ use crate::util::tomb;
 
 /// Platform specific line ending character.
 #[cfg(not(windows))]
-const LINE_ENDING: &'static str = "\n";
+const LINE_ENDING: &str = "\n";
 #[cfg(windows)]
-const LINE_ENDING: &'static str = "\r\n";
+const LINE_ENDING: &str = "\r\n";
 
 use crate::{
     cmd::matcher::{

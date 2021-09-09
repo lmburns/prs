@@ -54,7 +54,9 @@ impl<'a> Clone<'a> {
 
         // Hint user to add our recipient key
         if !matcher_main.quiet() {
-            if !store_has_our_secret {
+            if store_has_our_secret {
+                eprintln!("Store cloned");
+            } else {
                 let bin = util::bin_name();
                 let config = crate::crypto::config(&matcher_main);
                 let system_has_secret = crypto::util::has_private_key(&config).unwrap_or(true);
@@ -75,8 +77,6 @@ impl<'a> Clone<'a> {
                     style::highlight(&format!("{} recipients generate", bin))
                 );
                 println!();
-            } else {
-                eprintln!("Store cloned");
             }
         }
 

@@ -109,10 +109,8 @@ impl<'a> Generate<'a> {
                     crate::action::housekeeping::recrypt::recrypt_all(&store, &matcher_main)
                         .map_err(Err::Recrypt)?;
                 };
-            } else {
-                if !matcher_main.quiet() {
+            } else if !matcher_main.quiet() {
                     super::add::cannot_decrypt_show_recrypt_hints();
-                }
             }
 
             // Finalize sync

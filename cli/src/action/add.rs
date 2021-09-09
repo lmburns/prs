@@ -73,10 +73,8 @@ impl<'a> Add<'a> {
         }
 
         // Confirm if empty secret should be stored
-        if !matcher_main.force() && !matcher_add.empty() && plaintext.is_empty() {
-            if !cli::prompt_yes("Secret is empty. Add?", Some(true), &matcher_main) {
-                error::quit();
-            }
+        if !matcher_main.force() && !matcher_add.empty() && plaintext.is_empty() && !cli::prompt_yes("Secret is empty. Add?", Some(true), &matcher_main) {
+            error::quit();
         }
 
         // Encrypt and write changed plaintext

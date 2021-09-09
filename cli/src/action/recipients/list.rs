@@ -41,10 +41,10 @@ impl<'a> List<'a> {
             .keys()
             .iter()
             .map(|key| {
-                if !matcher_main.quiet() {
-                    key.to_string()
-                } else {
+                if matcher_main.quiet() {
                     key.fingerprint(false)
+                } else {
+                    key.to_string()
                 }
             })
             .for_each(|key| println!("{}", key,));

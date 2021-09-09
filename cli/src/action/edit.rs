@@ -3,10 +3,12 @@ use clap::ArgMatches;
 use prs_lib::{crypto::prelude::*, Store};
 use thiserror::Error;
 
-use crate::cmd::matcher::{edit::EditMatcher, MainMatcher, Matcher};
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 use crate::util::tomb;
-use crate::util::{cli, edit, error, secret, select, stdin, sync};
+use crate::{
+    cmd::matcher::{edit::EditMatcher, MainMatcher, Matcher},
+    util::{cli, edit, error, secret, select, stdin, sync},
+};
 
 /// Edit secret plaintext action.
 pub struct Edit<'a> {
@@ -62,18 +64,19 @@ impl<'a> Edit<'a> {
                         eprintln!("Secret is unchanged");
                     }
                     error::quit();
-                }
+                },
             };
         }
 
         // Confirm if empty secret should be stored
-        if !matcher_main.force() && plaintext.is_empty() {
-            if !cli::prompt_yes("Edited secret is empty. Save?", Some(true), &matcher_main) {
-                if matcher_main.verbose() {
-                    eprintln!("Secret is unchanged");
-                }
-                error::quit();
+        if !matcher_main.force()
+            && plaintext.is_empty()
+            && !cli::prompt_yes("Edited secret is empty. Save?", Some(true), &matcher_main)
+        {
+            if matcher_main.verbose() {
+                eprintln!("Secret is unchanged");
             }
+            error::quit();
         }
 
         // Encrypt and write changed plaintext

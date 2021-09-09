@@ -69,7 +69,7 @@ pub fn prompt_yes(msg: &str, def: Option<bool>, main_matcher: &MainMatcher) -> b
         if let Some(def) = def {
             eprintln!("{} {}: {}", msg, options, if def { "yes" } else { "no" });
             return def;
-        } else {
+        }
             quit_error_msg(
                 format!(
                     "could not prompt question '{}' in no-interact mode, maybe specify it",
@@ -77,7 +77,6 @@ pub fn prompt_yes(msg: &str, def: Option<bool>, main_matcher: &MainMatcher) -> b
                 ),
                 ErrorHints::default(),
             );
-        }
     }
 
     // Get the user input
