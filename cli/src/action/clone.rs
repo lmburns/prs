@@ -11,18 +11,18 @@ use crate::util::{self, style};
 use crate::vendor::shellexpand;
 
 /// Clone store action.
-pub struct Clone<'a> {
+pub(crate) struct Clone<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Clone<'a> {
     /// Construct a new clone action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the clone action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_clone = CloneMatcher::with(self.cmd_matches).unwrap();
@@ -85,7 +85,7 @@ impl<'a> Clone<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to expand store path")]
     ExpandPath(#[source] shellexpand::LookupError<std::env::VarError>),
 

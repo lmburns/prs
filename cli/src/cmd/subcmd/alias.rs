@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, ArgStore, CmdArg};
 
 /// The alias command definition.
-pub struct CmdAlias;
+pub(crate) struct CmdAlias;
 
 impl CmdAlias {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("alias")
             .alias("ln")
             .alias("link")

@@ -1,10 +1,10 @@
 use clap::{App, Arg};
 
 /// The recipient export command definition.
-pub struct CmdExport;
+pub(crate) struct CmdExport;
 
 impl CmdExport {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         let cmd = App::new("export")
             .alias("exp")
             .alias("ex")

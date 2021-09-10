@@ -4,14 +4,14 @@ use super::Matcher;
 use crate::cmd::arg::{ArgStore, CmdArgOption};
 
 /// The git command matcher.
-pub struct GitMatcher<'a> {
+pub(crate) struct GitMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> GitMatcher<'a> {
     /// Get the git command to invoke.
-    pub fn command(&self) -> String {
+    pub(crate) fn command(&self) -> String {
         self.matches
             .values_of("COMMAND")
             .map(|c| c.collect::<Vec<_>>().join(" "))
@@ -19,7 +19,7 @@ impl<'a: 'b, 'b> GitMatcher<'a> {
     }
 
     /// The store.
-    pub fn store(&self) -> String {
+    pub(crate) fn store(&self) -> String {
         ArgStore::value(self.matches)
     }
 }

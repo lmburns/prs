@@ -5,40 +5,40 @@ use super::Matcher;
 use crate::cmd::arg::{ArgProperty, ArgQuery, ArgStore, ArgTimeout, CmdArgOption};
 
 /// The show command matcher.
-pub struct ShowMatcher<'a> {
+pub(crate) struct ShowMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> ShowMatcher<'a> {
     /// Check whether to just show the first line of the secret.
-    pub fn first_line(&self) -> bool {
+    pub(crate) fn first_line(&self) -> bool {
         self.matches.is_present("first")
     }
 
     /// The secret query.
-    pub fn query(&self) -> Option<String> {
+    pub(crate) fn query(&self) -> Option<String> {
         ArgQuery::value(self.matches)
     }
 
     /// The store.
-    pub fn store(&self) -> String {
+    pub(crate) fn store(&self) -> String {
         ArgStore::value(self.matches)
     }
 
     /// Show timeout in seconds.
-    pub fn timeout(&self) -> Option<Result<u64>> {
+    pub(crate) fn timeout(&self) -> Option<Result<u64>> {
         ArgTimeout::value(self.matches)
     }
 
     /// The selected property.
-    pub fn property(&self) -> Option<&str> {
+    pub(crate) fn property(&self) -> Option<&str> {
         ArgProperty::value(self.matches)
     }
 
     /// Check whether to read from copy.
     #[cfg(feature = "clipboard")]
-    pub fn copy(&self) -> bool {
+    pub(crate) fn copy(&self) -> bool {
         self.matches.is_present("copy")
     }
 }

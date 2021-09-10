@@ -1,10 +1,13 @@
 //! Interface to a password store and its secrets.
 
-use std::ffi::OsString;
-use std::fs;
-use std::path::{self, Path, PathBuf};
+use std::{
+    ffi::OsString,
+    fs,
+    path::{self, Path, PathBuf},
+};
 
 use anyhow::{ensure, Result};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use walkdir::{DirEntry, WalkDir};
 
@@ -21,12 +24,30 @@ use crate::{
 pub const SECRET_SUFFIX: &str = ".gpg";
 
 /// Represents a password store.
-#[derive(Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize, Eq)]
 pub struct Store {
     /// Root directory of the password store.
     ///
     /// This path is always absolute.
     pub root: PathBuf,
+}
+
+impl std::cmp::PartialEq for Store {
+    fn eq(&self, other: &Self) -> bool {
+        self.root == other.root
+    }
+}
+
+impl std::cmp::Ord for Store {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.root.cmp(&other.root)
+    }
+}
+
+impl std::cmp::PartialOrd for Store {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.root.partial_cmp(&other.root)
+    }
 }
 
 impl Store {
@@ -100,7 +121,8 @@ impl Store {
     /// Try to find matching secrets for given query.
     ///
     /// If secret is found at exact query path, `FindSecret::Found` is returned.
-    /// Otherwise any number of closely matching secrets is returned as `FindSecret::Many`.
+    /// Otherwise any number of closely matching secrets is returned as
+    /// `FindSecret::Many`.
     pub fn find(&self, query: Option<String>) -> FindSecret {
         // Try to find exact secret match
         if let Some(query) = &query {
@@ -262,14 +284,15 @@ pub struct SecretIterConfig {
 
     /// Find files that are symlinks.
     ///
-    /// Will still find files if they're symlinked to while `find_files` is `false`.
+    /// Will still find files if they're symlinked to while `find_files` is
+    /// `false`.
     pub find_symlink_files: bool,
 }
 
 impl Default for SecretIterConfig {
     fn default() -> Self {
         Self {
-            find_files: true,
+            find_files:         true,
             find_symlink_files: true,
         }
     }
@@ -366,7 +389,8 @@ fn filter_by_config(entry: &DirEntry, config: &SecretIterConfig) -> bool {
 
 /// Check whether we can decrypt the first secret in the store.
 ///
-/// If decryption fails, and this returns false, it means we don't own any compatible secret key.
+/// If decryption fails, and this returns false, it means we don't own any
+/// compatible secret key.
 ///
 /// Returns true if there is no secret.
 pub fn can_decrypt(store: &Store) -> bool {
@@ -387,7 +411,7 @@ pub struct FilterSecretIter<I>
 where
     I: Iterator<Item = Secret>,
 {
-    inner: I,
+    inner:  I,
     filter: Option<String>,
 }
 

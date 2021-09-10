@@ -174,7 +174,7 @@ use std::{borrow::Cow, env::VarError, error::Error, fmt, path::Path};
 ///     "~/a value/b value"
 /// );
 /// ```
-pub fn full_with_context<SI: ?Sized, CO, C, E, P, HD>(
+pub(crate) fn full_with_context<SI: ?Sized, CO, C, E, P, HD>(
     input: &SI,
     home_dir: HD,
     context: C,
@@ -254,7 +254,7 @@ where
 /// );
 /// ```
 #[inline]
-pub fn full_with_context_no_errors<SI: ?Sized, CO, C, P, HD>(
+pub(crate) fn full_with_context_no_errors<SI: ?Sized, CO, C, P, HD>(
     input: &SI,
     home_dir: HD,
     mut context: C,
@@ -318,7 +318,7 @@ where
 /// );
 /// ```
 #[inline]
-pub fn full<SI: ?Sized>(input: &SI) -> Result<Cow<str>, LookupError<VarError>>
+pub(crate) fn full<SI: ?Sized>(input: &SI) -> Result<Cow<str>, LookupError<VarError>>
 where
     SI: AsRef<str>,
 {
@@ -333,11 +333,11 @@ where
 /// `cause` field, while `name` contains the name of a variable whose expansion
 /// caused the error.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct LookupError<E> {
+pub(crate) struct LookupError<E> {
     /// The name of the problematic variable inside the input string.
-    pub var_name: String,
+    pub(crate) var_name: String,
     /// The original error returned by the context function.
-    pub cause:    E,
+    pub(crate) cause:    E,
 }
 
 impl<E: fmt::Display> fmt::Display for LookupError<E> {
@@ -452,7 +452,7 @@ fn is_valid_var_name_char(c: char) -> bool {
 ///     })
 /// );
 /// ```
-pub fn env_with_context<SI: ?Sized, CO, C, E>(
+pub(crate) fn env_with_context<SI: ?Sized, CO, C, E>(
     input: &SI,
     mut context: C,
 ) -> Result<Cow<str>, LookupError<E>>
@@ -609,7 +609,7 @@ where
 /// );
 /// ```
 #[inline]
-pub fn env_with_context_no_errors<SI: ?Sized, CO, C>(input: &SI, mut context: C) -> Cow<str>
+pub(crate) fn env_with_context_no_errors<SI: ?Sized, CO, C>(input: &SI, mut context: C) -> Cow<str>
 where
     SI: AsRef<str>,
     CO: AsRef<str>,
@@ -657,7 +657,7 @@ where
 /// );
 /// ```
 #[inline]
-pub fn env<SI: ?Sized>(input: &SI) -> Result<Cow<str>, LookupError<VarError>>
+pub(crate) fn env<SI: ?Sized>(input: &SI) -> Result<Cow<str>, LookupError<VarError>>
 where
     SI: AsRef<str>,
 {
@@ -697,7 +697,7 @@ where
 ///    "/home/user/some/dir"
 /// );
 /// ```
-pub fn tilde_with_context<SI: ?Sized, P, HD>(input: &SI, home_dir: HD) -> Cow<str>
+pub(crate) fn tilde_with_context<SI: ?Sized, P, HD>(input: &SI, home_dir: HD) -> Cow<str>
 where
     SI: AsRef<str>,
     P: AsRef<Path>,
@@ -747,7 +747,7 @@ where
 /// );
 /// ```
 #[inline]
-pub fn tilde<SI: ?Sized>(input: &SI) -> Cow<str>
+pub(crate) fn tilde<SI: ?Sized>(input: &SI) -> Cow<str>
 where
     SI: AsRef<str>,
 {

@@ -3,7 +3,7 @@ use clap::Arg;
 use super::{CmdArg, CmdArgFlag};
 
 /// The no-sync argument.
-pub struct ArgNoSync {}
+pub(crate) struct ArgNoSync {}
 
 impl CmdArg for ArgNoSync {
     fn name() -> &'static str {

@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgQuery, ArgStore, CmdArg};
 
 /// The list command definition.
-pub struct CmdList;
+pub(crate) struct CmdList;
 
 impl CmdList {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("list")
             .alias("ls")
             .alias("l")

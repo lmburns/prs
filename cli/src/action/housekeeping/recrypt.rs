@@ -18,18 +18,18 @@ use crate::{
 };
 
 /// A housekeeping recrypt action.
-pub struct Recrypt<'a> {
+pub(crate) struct Recrypt<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Recrypt<'a> {
     /// Construct a new recrypt action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the recrypt action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_housekeeping = HousekeepingMatcher::with(self.cmd_matches).unwrap();
@@ -75,12 +75,12 @@ impl<'a> Recrypt<'a> {
 }
 
 /// Re-encrypt all secrets in the given store.
-pub fn recrypt_all(store: &Store, matcher_main: &MainMatcher) -> Result<()> {
+pub(crate) fn recrypt_all(store: &Store, matcher_main: &MainMatcher) -> Result<()> {
     recrypt(store, &store.secrets(None), matcher_main)
 }
 
 /// Re-encrypt all given secrets.
-pub fn recrypt(store: &Store, secrets: &[Secret], matcher_main: &MainMatcher) -> Result<()> {
+pub(crate) fn recrypt(store: &Store, secrets: &[Secret], matcher_main: &MainMatcher) -> Result<()> {
     let mut context = crate::crypto::context(&matcher_main)?;
     let recipients = store.recipients().map_err(Err::Store)?;
     let len = secrets.len();
@@ -153,7 +153,7 @@ fn recrypt_single(context: &mut Context, secret: &Secret, recipients: &Recipient
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

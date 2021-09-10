@@ -14,7 +14,7 @@ const UNIX_DIR_SHM: &str = "/dev/shm";
 /// Edit given plaintext in default editor.
 ///
 /// Only returns `Plaintext` if changed.
-pub fn edit(plaintext: &Plaintext) -> Result<Option<Plaintext>> {
+pub(crate) fn edit(plaintext: &Plaintext) -> Result<Option<Plaintext>> {
     // Create secure temporary file for secret
     let mut builder = edit::Builder::new();
     builder.prefix(".prs-secret-");
@@ -84,7 +84,7 @@ fn dir() -> PathBuf {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to create secure temporary file to edit data in")]
     Create(#[source] std::io::Error),
 

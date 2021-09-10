@@ -3,7 +3,7 @@ use clap::ArgMatches;
 use super::Matcher;
 
 /// The recipients list command matcher.
-pub struct ListMatcher<'a> {
+pub(crate) struct ListMatcher<'a> {
     _matches: &'a ArgMatches,
 }
 

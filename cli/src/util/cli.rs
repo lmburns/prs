@@ -7,7 +7,7 @@ use crate::util::error::{quit_error, quit_error_msg, ErrorHints};
 /// Prompt the user to enter some value.
 /// The prompt that is shown should be passed to `msg`,
 /// excluding the `:` suffix.
-pub fn prompt(msg: &str, main_matcher: &MainMatcher) -> String {
+pub(crate) fn prompt(msg: &str, main_matcher: &MainMatcher) -> String {
     // Quit with an error if we may not interact
     if main_matcher.no_interact() {
         quit_error_msg(
@@ -44,7 +44,7 @@ pub fn prompt(msg: &str, main_matcher: &MainMatcher) -> String {
 ///
 /// A default may be given, which is chosen if no-interact mode is
 /// enabled, or if enter was pressed by the user without entering anything.
-pub fn prompt_yes(msg: &str, def: Option<bool>, main_matcher: &MainMatcher) -> bool {
+pub(crate) fn prompt_yes(msg: &str, def: Option<bool>, main_matcher: &MainMatcher) -> bool {
     // Define the available options string
     let options = format!(
         "[{}/{}]",

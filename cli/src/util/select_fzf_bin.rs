@@ -14,7 +14,7 @@ const BIN_NAME: &str = "fzf";
 const BIN_NAME: &str = "fzf.exe";
 
 /// Select secret.
-pub fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
+pub(crate) fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
     // Return if theres just one to choose
     if secrets.len() == 1 {
         return secrets.get(0);
@@ -31,7 +31,7 @@ pub fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
 }
 
 /// Select key.
-pub fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
+pub(crate) fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
     let map: HashMap<_, _> = keys.into_iter().map(|key| (key.to_string(), key)).collect();
     let items: Vec<_> = map.keys().collect();
     select_item(prompt.unwrap_or("Select key"), &items)

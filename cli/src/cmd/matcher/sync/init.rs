@@ -3,7 +3,7 @@ use clap::ArgMatches;
 use super::Matcher;
 
 /// The sync init command matcher.
-pub struct InitMatcher<'a> {
+pub(crate) struct InitMatcher<'a> {
     _matches: &'a ArgMatches,
 }
 

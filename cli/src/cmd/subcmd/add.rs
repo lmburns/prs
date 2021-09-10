@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgStore, CmdArg};
 
 /// The add command definition.
-pub struct CmdAdd;
+pub(crate) struct CmdAdd;
 
 impl CmdAdd {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("add")
             .alias("a")
             .alias("new")

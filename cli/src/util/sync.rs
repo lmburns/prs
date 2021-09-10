@@ -3,7 +3,7 @@ use prs_lib::sync::{Readyness, Sync};
 use crate::util::error::{quit_error, quit_error_msg, ErrorHintsBuilder};
 
 /// Ensure the store is ready, otherwise quit.
-pub fn ensure_ready(sync: &Sync, allow_dirty: bool) {
+pub(crate) fn ensure_ready(sync: &Sync, allow_dirty: bool) {
     let readyness = match sync.readyness() {
         Ok(readyness) => readyness,
         Err(err) => {

@@ -1,5 +1,5 @@
-pub mod init;
-pub mod remote;
+pub(crate) mod init;
+pub(crate) mod remote;
 
 use anyhow::Result;
 use clap::ArgMatches;
@@ -20,18 +20,18 @@ use crate::{
 };
 
 /// Sync secrets action.
-pub struct Sync<'a> {
+pub(crate) struct Sync<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Sync<'a> {
     /// Construct a new sync action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the sync action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_sync = SyncMatcher::with(self.cmd_matches).unwrap();
@@ -101,7 +101,7 @@ impl<'a> Sync<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

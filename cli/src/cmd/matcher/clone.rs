@@ -4,19 +4,19 @@ use super::Matcher;
 use crate::cmd::arg::{ArgStore, CmdArgOption};
 
 /// The clone command matcher.
-pub struct CloneMatcher<'a> {
+pub(crate) struct CloneMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> CloneMatcher<'a> {
     /// The git URL to clone from.
-    pub fn git_url(&self) -> &str {
+    pub(crate) fn git_url(&self) -> &str {
         self.matches.value_of("GIT_URL").unwrap()
     }
 
     /// The store.
-    pub fn store(&self) -> String {
+    pub(crate) fn store(&self) -> String {
         ArgStore::value(self.matches)
     }
 }

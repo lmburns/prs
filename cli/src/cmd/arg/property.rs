@@ -3,7 +3,7 @@ use clap::{Arg, ArgMatches};
 use super::{CmdArg, CmdArgOption};
 
 /// The property argument.
-pub struct ArgProperty {}
+pub(crate) struct ArgProperty {}
 
 impl CmdArg for ArgProperty {
     fn name() -> &'static str {

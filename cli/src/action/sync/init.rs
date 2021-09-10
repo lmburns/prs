@@ -11,18 +11,18 @@ use crate::{
 };
 
 /// A sync init action.
-pub struct Init<'a> {
+pub(crate) struct Init<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Init<'a> {
     /// Construct a new init action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the init action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_sync = SyncMatcher::with(self.cmd_matches).unwrap();
@@ -70,7 +70,7 @@ impl<'a> Init<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

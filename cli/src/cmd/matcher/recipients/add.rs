@@ -4,29 +4,30 @@ use super::Matcher;
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArgFlag};
 
 /// The recipients add command matcher.
-pub struct AddMatcher<'a> {
+#[derive(Debug)]
+pub(crate) struct AddMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> AddMatcher<'a> {
     /// Check whether to skip re-encrypting secrets.
-    pub fn no_recrypt(&self) -> bool {
+    pub(crate) fn no_recrypt(&self) -> bool {
         self.matches.is_present("no-recrypt")
     }
 
     /// Check whether to add a secret key.
-    pub fn secret(&self) -> bool {
+    pub(crate) fn secret(&self) -> bool {
         self.matches.is_present("secret")
     }
 
     /// Whether to allow a dirty repository for syncing.
-    pub fn allow_dirty(&self) -> bool {
+    pub(crate) fn allow_dirty(&self) -> bool {
         ArgAllowDirty::is_present(self.matches)
     }
 
     /// Whether to not sync.
-    pub fn no_sync(&self) -> bool {
+    pub(crate) fn no_sync(&self) -> bool {
         ArgNoSync::is_present(self.matches)
     }
 }

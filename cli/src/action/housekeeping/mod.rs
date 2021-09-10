@@ -1,6 +1,6 @@
-pub mod recrypt;
-pub mod run;
-pub mod sync_keys;
+pub(crate) mod recrypt;
+pub(crate) mod run;
+pub(crate) mod sync_keys;
 
 use anyhow::Result;
 use clap::ArgMatches;
@@ -8,18 +8,18 @@ use clap::ArgMatches;
 use crate::cmd::matcher::{HousekeepingMatcher, Matcher};
 
 /// A file housekeeping action.
-pub struct Housekeeping<'a> {
+pub(crate) struct Housekeeping<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Housekeeping<'a> {
     /// Construct a new housekeeping action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the housekeeping action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matcher
         let matcher_housekeeping = HousekeepingMatcher::with(self.cmd_matches).unwrap();
 

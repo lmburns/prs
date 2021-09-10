@@ -3,7 +3,7 @@ use clap::Arg;
 use super::{CmdArg, CmdArgFlag};
 
 /// The allow-dirty argument.
-pub struct ArgAllowDirty {}
+pub(crate) struct ArgAllowDirty {}
 
 impl CmdArg for ArgAllowDirty {
     fn name() -> &'static str {

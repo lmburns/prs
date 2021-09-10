@@ -3,10 +3,10 @@ use clap::App;
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, ArgStore, CmdArg};
 
 /// The remove command definition.
-pub struct CmdRemove;
+pub(crate) struct CmdRemove;
 
 impl CmdRemove {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("remove")
             .alias("rm")
             .alias("delete")

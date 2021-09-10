@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, ArgStore, CmdArg};
 
 /// The edit command definition.
-pub struct CmdEdit;
+pub(crate) struct CmdEdit;
 
 impl CmdEdit {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("edit")
             .alias("e")
             .about("Edit a secret")

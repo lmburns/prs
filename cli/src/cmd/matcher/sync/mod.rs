@@ -1,5 +1,5 @@
-pub mod init;
-pub mod remote;
+pub(crate) mod init;
+pub(crate) mod remote;
 
 use clap::ArgMatches;
 
@@ -7,7 +7,7 @@ use super::Matcher;
 use crate::cmd::arg::{ArgAllowDirty, ArgStore, CmdArgFlag, CmdArgOption};
 
 /// The sync command matcher.
-pub struct SyncMatcher<'a> {
+pub(crate) struct SyncMatcher<'a> {
     root: &'a ArgMatches,
     matches: &'a ArgMatches,
 }
@@ -15,22 +15,22 @@ pub struct SyncMatcher<'a> {
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> SyncMatcher<'a> {
     /// Get the sync init sub command, if matched.
-    pub fn cmd_init(&'a self) -> Option<init::InitMatcher> {
+    pub(crate) fn cmd_init(&'a self) -> Option<init::InitMatcher> {
         init::InitMatcher::with(&self.root)
     }
 
     /// Get the sync remote sub command, if matched.
-    pub fn cmd_remote(&'a self) -> Option<remote::RemoteMatcher> {
+    pub(crate) fn cmd_remote(&'a self) -> Option<remote::RemoteMatcher> {
         remote::RemoteMatcher::with(&self.root)
     }
 
     /// The store.
-    pub fn store(&self) -> String {
+    pub(crate) fn store(&self) -> String {
         ArgStore::value(self.matches)
     }
 
     /// Whether to allow a dirty repository for syncing.
-    pub fn allow_dirty(&self) -> bool {
+    pub(crate) fn allow_dirty(&self) -> bool {
         ArgAllowDirty::is_present(self.matches)
     }
 }

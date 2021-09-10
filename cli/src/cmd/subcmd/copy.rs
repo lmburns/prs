@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgProperty, ArgQuery, ArgStore, ArgTimeout, CmdArg};
 
 /// The copy command definition.
-pub struct CmdCopy;
+pub(crate) struct CmdCopy;
 
 impl CmdCopy {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("copy")
             .alias("cp")
             .alias("c")

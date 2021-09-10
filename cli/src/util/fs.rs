@@ -11,7 +11,7 @@ use crate::util::error::{self, ErrorHints};
 ///
 /// Checks whether the given path is not a directory, or whehter the directory is empty.
 /// Quits on error.
-pub fn ensure_dir_free(path: &Path) -> Result<(), std::io::Error> {
+pub(crate) fn ensure_dir_free(path: &Path) -> Result<(), std::io::Error> {
     // Fine if not a directory
     if !path.is_dir() {
         return Ok(());
@@ -44,7 +44,7 @@ pub fn has_swap() -> Result<bool, Err> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[cfg(all(feature = "tomb", target_os = "linux"))]
     #[error("failed to check whether system has active SWAP")]
     HasSwap(#[source] std::io::Error),

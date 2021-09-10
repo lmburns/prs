@@ -3,7 +3,7 @@ use clap::{Arg, ArgMatches};
 use super::{CmdArg, CmdArgOption};
 
 /// The store argument.
-pub struct ArgStore {}
+pub(crate) struct ArgStore {}
 
 impl CmdArg for ArgStore {
     fn name() -> &'static str {

@@ -22,13 +22,13 @@ use crate::util::error::{self, ErrorHintsBuilder};
 /// Get clipboard contents.
 ///
 /// If clipboard is unset, an emtpy string is returned.
-pub fn get() -> Result<String> {
+pub(crate) fn get() -> Result<String> {
     let mut ctx = copypasta_ext::x11_fork::ClipboardContext::new().map_err(Err::Clipboard)?;
     Ok(ctx.get_contents().unwrap_or_else(|_| String::new()))
 }
 
 /// Set clipboard contents.
-pub fn set(data: &[u8]) -> Result<()> {
+pub(crate) fn set(data: &[u8]) -> Result<()> {
     let mut ctx = copypasta_ext::x11_fork::ClipboardContext::new().map_err(Err::Clipboard)?;
     ctx.set_contents(std::str::from_utf8(data).unwrap().into())
         .map_err(|err| Err::Clipboard(err).into())
@@ -36,7 +36,7 @@ pub fn set(data: &[u8]) -> Result<()> {
 
 /// Copy the given plain text to the user clipboard.
 #[allow(unreachable_code)]
-pub fn copy_timeout(data: &[u8], timeout: u64, report: bool) -> Result<()> {
+pub(crate) fn copy_timeout(data: &[u8], timeout: u64, report: bool) -> Result<()> {
     if timeout == 0 {
         return set(data);
     }
@@ -467,7 +467,7 @@ fn is_wayland() -> bool {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[allow(dead_code)]
     #[error("failed to parse clipboard contents as UTF-8")]
     Utf8(#[source] std::str::Utf8Error),

@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgStore, CmdArg};
 
 /// The clone command definition.
-pub struct CmdClone;
+pub(crate) struct CmdClone;
 
 impl CmdClone {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("clone")
             .about("Clone existing password store")
             .arg(

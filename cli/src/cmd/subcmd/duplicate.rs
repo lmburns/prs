@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, ArgStore, CmdArg};
 
 /// The duplicate command definition.
-pub struct CmdDuplicate;
+pub(crate) struct CmdDuplicate;
 
 impl CmdDuplicate {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("duplicate")
             .alias("dup")
             .about("Duplicate a secret")

@@ -3,24 +3,26 @@ use clap::ArgMatches;
 use prs_lib::{crypto::prelude::*, Plaintext, Secret, Store};
 use thiserror::Error;
 
-use crate::cmd::matcher::{add::AddMatcher, MainMatcher, Matcher};
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 use crate::util::tomb;
-use crate::util::{cli, edit, error, stdin, sync};
+use crate::{
+    cmd::matcher::{add::AddMatcher, MainMatcher, Matcher},
+    util::{cli, edit, error, stdin, sync},
+};
 
 /// Add secret action.
-pub struct Add<'a> {
+pub(crate) struct Add<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Add<'a> {
     /// Construct a new add action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the add action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_add = AddMatcher::with(self.cmd_matches).unwrap();
@@ -49,7 +51,8 @@ impl<'a> Add<'a> {
         let path = store
             .normalize_secret_path(name, None, true)
             .map_err(Err::NormalizePath)?;
-        let secret = Secret::from(&store, path.to_path_buf());
+
+        let secret = Secret::from(&store, path.clone());
 
         let mut plaintext = Plaintext::empty();
 
@@ -73,7 +76,11 @@ impl<'a> Add<'a> {
         }
 
         // Confirm if empty secret should be stored
-        if !matcher_main.force() && !matcher_add.empty() && plaintext.is_empty() && !cli::prompt_yes("Secret is empty. Add?", Some(true), &matcher_main) {
+        if !matcher_main.force()
+            && !matcher_add.empty()
+            && plaintext.is_empty()
+            && !cli::prompt_yes("Secret is empty. Add?", Some(true), &matcher_main)
+        {
             error::quit();
         }
 
@@ -102,7 +109,7 @@ impl<'a> Add<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

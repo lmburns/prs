@@ -1,13 +1,13 @@
 #[cfg(feature = "clipboard")]
-pub mod clip_revert;
-pub mod completions;
+pub(crate) mod clip_revert;
+pub(crate) mod completions;
 
 use clap::ArgMatches;
 
 use super::Matcher;
 
 /// The internal matcher.
-pub struct InternalMatcher<'a> {
+pub(crate) struct InternalMatcher<'a> {
     root: &'a ArgMatches,
     _matches: &'a ArgMatches,
 }
@@ -16,12 +16,12 @@ pub struct InternalMatcher<'a> {
 impl<'a: 'b, 'b> InternalMatcher<'a> {
     /// Get the internal clipboard revert sub command, if matched.
     #[cfg(feature = "clipboard")]
-    pub fn clip_revert(&'a self) -> Option<clip_revert::ClipRevertMatcher> {
+    pub(crate) fn clip_revert(&'a self) -> Option<clip_revert::ClipRevertMatcher> {
         clip_revert::ClipRevertMatcher::with(&self.root)
     }
 
     /// Get the internal completions generator sub command, if matched.
-    pub fn completions(&'a self) -> Option<completions::CompletionsMatcher> {
+    pub(crate) fn completions(&'a self) -> Option<completions::CompletionsMatcher> {
         completions::CompletionsMatcher::with(&self.root)
     }
 }

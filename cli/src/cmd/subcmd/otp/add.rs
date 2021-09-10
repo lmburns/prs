@@ -4,11 +4,12 @@ use data_encoding::BASE32_NOPAD;
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgStore, CmdArg};
 
 /// The add command definition.
-pub struct CmdOtp;
+pub(crate) struct CmdAdd;
 
-impl CmdOtp {
-    pub fn build<'a>() -> App<'a> {
-        App::new("otp")
+impl CmdAdd {
+    pub(crate) fn build<'a>() -> App<'a> {
+        App::new("add")
+            .alias("a")
             .about("Add an otp code")
             .arg(
                 Arg::new("ACCOUNT")

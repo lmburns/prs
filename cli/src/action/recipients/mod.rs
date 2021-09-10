@@ -1,8 +1,8 @@
-pub mod add;
-pub mod export;
-pub mod generate;
-pub mod list;
-pub mod remove;
+pub(crate) mod add;
+pub(crate) mod export;
+pub(crate) mod generate;
+pub(crate) mod list;
+pub(crate) mod remove;
 
 use anyhow::Result;
 use clap::ArgMatches;
@@ -10,18 +10,18 @@ use clap::ArgMatches;
 use crate::cmd::matcher::{Matcher, RecipientsMatcher};
 
 /// A file recipients action.
-pub struct Recipients<'a> {
+pub(crate) struct Recipients<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Recipients<'a> {
     /// Construct a new recipients action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the recipients action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matcher
         let matcher_recipients = RecipientsMatcher::with(self.cmd_matches).unwrap();
 

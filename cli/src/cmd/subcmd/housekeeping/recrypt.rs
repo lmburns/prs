@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, CmdArg};
 
 /// The housekeeping recrypt command definition.
-pub struct CmdRecrypt;
+pub(crate) struct CmdRecrypt;
 
 impl CmdRecrypt {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("recrypt")
             .alias("reencrypt")
             .about("Re-encrypt secrets")

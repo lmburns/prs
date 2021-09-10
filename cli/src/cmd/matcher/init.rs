@@ -4,14 +4,14 @@ use super::Matcher;
 use crate::cmd::arg::{ArgStore, CmdArgOption};
 
 /// The init command matcher.
-pub struct InitMatcher<'a> {
+pub(crate) struct InitMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> InitMatcher<'a> {
     /// The store.
-    pub fn store(&self) -> String {
+    pub(crate) fn store(&self) -> String {
         ArgStore::value(self.matches)
     }
 }

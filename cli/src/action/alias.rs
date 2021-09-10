@@ -12,18 +12,18 @@ use crate::util::tomb;
 use crate::util::{cli, error, select, sync};
 
 /// Alias secret action.
-pub struct Alias<'a> {
+pub(crate) struct Alias<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Alias<'a> {
     /// Construct a new alias action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the alias action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_alias = AliasMatcher::with(self.cmd_matches).unwrap();
@@ -103,7 +103,7 @@ impl<'a> Alias<'a> {
 /// `dst` and `place_at` are usually the same.
 /// This may be different to use the correct relative symlink path for a secret at `place_at` that
 /// will be moved to `dst` in the future.
-pub fn create_alias(store: &Store, src: &Secret, dst: &Path, place_at: &Path) -> Result<(), Err> {
+pub(crate) fn create_alias(store: &Store, src: &Secret, dst: &Path, place_at: &Path) -> Result<(), Err> {
     create_symlink(secret_link_path(&store, &src, &dst)?, place_at)
 }
 
@@ -168,7 +168,7 @@ fn path_depth(store: &Store, mut path: &Path) -> Result<u16, Err> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

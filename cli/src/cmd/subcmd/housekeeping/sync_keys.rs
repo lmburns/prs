@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg};
 
 /// The housekeeping sync-keys command definition.
-pub struct CmdSyncKeys;
+pub(crate) struct CmdSyncKeys;
 
 impl CmdSyncKeys {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("sync-keys")
             .alias("sync-recipients")
             .about("Sync public keys in store, import missing keys")

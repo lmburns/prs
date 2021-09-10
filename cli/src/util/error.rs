@@ -1,5 +1,5 @@
 use derive_builder::Builder;
-pub use std::process::exit;
+pub(crate) use std::process::exit;
 use std::{
     borrow::Borrow,
     fmt::{Debug, Display},
@@ -17,7 +17,7 @@ use crate::util::style::{highlight, highlight_error, highlight_info, highlight_w
 
 /// Print the given error in a proper format for the user,
 /// with it's causes.
-pub fn print_error(err: anyhow::Error) {
+pub(crate) fn print_error(err: anyhow::Error) {
     // Report each printable error, count them
     let count = err
         .chain()
@@ -41,7 +41,7 @@ pub fn print_error(err: anyhow::Error) {
 
 /// Print the given error message in a proper format for the user,
 /// with it's causes.
-pub fn print_error_msg<S>(err: S)
+pub(crate) fn print_error_msg<S>(err: S)
 where
     S: AsRef<str> + Display + Debug + Sync + Send + 'static,
 {
@@ -49,7 +49,7 @@ where
 }
 
 /// Print a warning.
-pub fn print_warning<S>(err: S)
+pub(crate) fn print_warning<S>(err: S)
 where
     S: AsRef<str> + Display + Debug + Sync + Send + 'static,
 {
@@ -57,13 +57,13 @@ where
 }
 
 /// Quit the application regularly.
-pub fn quit() -> ! {
+pub(crate) fn quit() -> ! {
     exit(0);
 }
 
 /// Quit the application with an error code,
 /// and print the given error.
-pub fn quit_error(err: anyhow::Error, hints: impl Borrow<ErrorHints>) -> ! {
+pub(crate) fn quit_error(err: anyhow::Error, hints: impl Borrow<ErrorHints>) -> ! {
     // Print the error
     print_error(err);
 
@@ -76,7 +76,7 @@ pub fn quit_error(err: anyhow::Error, hints: impl Borrow<ErrorHints>) -> ! {
 
 /// Quit the application with an error code,
 /// and print the given error message.
-pub fn quit_error_msg<S>(err: S, hints: impl Borrow<ErrorHints>) -> !
+pub(crate) fn quit_error_msg<S>(err: S, hints: impl Borrow<ErrorHints>) -> !
 where
     S: AsRef<str> + Display + Debug + Sync + Send + 'static,
 {
@@ -86,7 +86,7 @@ where
 /// The error hint configuration.
 #[derive(Clone, Builder)]
 #[builder(default)]
-pub struct ErrorHints {
+pub(crate) struct ErrorHints {
     /// A list of info messages to print along with the error.
     info: Vec<String>,
 
@@ -117,7 +117,7 @@ pub struct ErrorHints {
 
 impl ErrorHints {
     /// Check whether any hint should be printed.
-    pub fn any(&self) -> bool {
+    pub(crate) fn any(&self) -> bool {
         self.sync
             || self.sync_init
             || self.sync_remote
@@ -128,7 +128,7 @@ impl ErrorHints {
     }
 
     /// Print the error hints.
-    pub fn print(&self, end_newline: bool) {
+    pub(crate) fn print(&self, end_newline: bool) {
         // Print info messages
         for msg in &self.info {
             eprintln!("{} {}", highlight_info("info:"), msg);
@@ -193,7 +193,7 @@ impl ErrorHints {
         }
 
         // Flush
-        let _ = io::stderr().flush();
+        let _d = io::stderr().flush();
     }
 }
 
@@ -215,7 +215,7 @@ impl Default for ErrorHints {
 
 impl ErrorHintsBuilder {
     /// Add a single info entry.
-    pub fn add_info(mut self, info: String) -> Self {
+    pub(crate) fn add_info(mut self, info: String) -> Self {
         // Initialize the info list
         if self.info.is_none() {
             self.info = Some(Vec::new());

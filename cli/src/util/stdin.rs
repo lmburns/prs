@@ -22,12 +22,12 @@ fn read_file(prompt: bool) -> Result<Vec<u8>> {
 }
 
 /// Read plaintext from stdin.
-pub fn read_plaintext(prompt: bool) -> Result<Plaintext> {
+pub(crate) fn read_plaintext(prompt: bool) -> Result<Plaintext> {
     Ok(read_file(prompt).map_err(Err::Plaintext)?.into())
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to read from stdin")]
     Stdin(#[source] io::Error),
 

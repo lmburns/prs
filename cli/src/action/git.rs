@@ -10,23 +10,23 @@ use crate::util::tomb;
 
 /// Binary name.
 #[cfg(not(windows))]
-pub const BIN_NAME: &str = "git";
+pub(crate) const BIN_NAME: &str = "git";
 #[cfg(windows)]
 pub const BIN_NAME: &str = "git.exe";
 
 /// Git action.
-pub struct Git<'a> {
+pub(crate) struct Git<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Git<'a> {
     /// Construct a new git action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the git action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_git = GitMatcher::with(self.cmd_matches).unwrap();
@@ -55,7 +55,7 @@ impl<'a> Git<'a> {
 
 /// Invoke a git command.
 // TODO: call through Command directly, possibly through lib interface
-pub fn git(store: &Store, cmd: String, verbose: bool) -> Result<()> {
+pub(crate) fn git(store: &Store, cmd: String, verbose: bool) -> Result<()> {
     util::invoke_cmd(
         format!("{} -C {} {}", BIN_NAME, store.root.display(), cmd),
         Some(&store.root),
@@ -65,7 +65,7 @@ pub fn git(store: &Store, cmd: String, verbose: bool) -> Result<()> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

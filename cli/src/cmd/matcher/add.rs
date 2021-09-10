@@ -4,39 +4,39 @@ use super::Matcher;
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgStore, CmdArgFlag, CmdArgOption};
 
 /// The add command matcher.
-pub struct AddMatcher<'a> {
+pub(crate) struct AddMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> AddMatcher<'a> {
     /// Secret destination.
-    pub fn name(&self) -> &str {
+    pub(crate) fn name(&self) -> &str {
         self.matches.value_of("NAME").unwrap()
     }
 
     /// Check whether to create an empty secret.
-    pub fn empty(&self) -> bool {
+    pub(crate) fn empty(&self) -> bool {
         self.matches.is_present("empty")
     }
 
     /// Check whether to read from stdin.
-    pub fn stdin(&self) -> bool {
+    pub(crate) fn stdin(&self) -> bool {
         self.matches.is_present("stdin")
     }
 
     /// The store.
-    pub fn store(&self) -> String {
+    pub(crate) fn store(&self) -> String {
         ArgStore::value(self.matches)
     }
 
     /// Whether to allow a dirty repository for syncing.
-    pub fn allow_dirty(&self) -> bool {
+    pub(crate) fn allow_dirty(&self) -> bool {
         ArgAllowDirty::is_present(self.matches)
     }
 
     /// Whether to not sync.
-    pub fn no_sync(&self) -> bool {
+    pub(crate) fn no_sync(&self) -> bool {
         ArgNoSync::is_present(self.matches)
     }
 }

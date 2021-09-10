@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::matcher::internal::completions::Shell;
 
 /// The generate completions command definition.
-pub struct CmdCompletions;
+pub(crate) struct CmdCompletions;
 
 impl CmdCompletions {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         let shell_variants: Vec<_> = Shell::variants().into_iter().map(|v| v.name()).collect();
 
         App::new("completions")

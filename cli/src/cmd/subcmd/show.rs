@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgProperty, ArgQuery, ArgStore, ArgTimeout, CmdArg};
 
 /// The show command definition.
-pub struct CmdShow;
+pub(crate) struct CmdShow;
 
 impl CmdShow {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         let cmd = App::new("show")
             .alias("s")
             .alias("cat")

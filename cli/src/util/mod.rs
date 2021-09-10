@@ -1,22 +1,22 @@
-pub mod cli;
+pub(crate) mod cli;
 #[cfg(feature = "clipboard")]
-pub mod clipboard;
-pub mod edit;
-pub mod error;
-pub mod fs;
-pub mod pass;
-pub mod secret;
-pub mod select;
-pub mod select_basic;
+pub(crate) mod clipboard;
+pub(crate) mod edit;
+pub(crate) mod error;
+pub(crate) mod fs;
+pub(crate) mod pass;
+pub(crate) mod secret;
+pub(crate) mod select;
+pub(crate) mod select_basic;
 #[cfg(feature = "select-fzf-bin")]
-pub mod select_fzf_bin;
+pub(crate) mod select_fzf_bin;
 #[cfg(all(feature = "select-skim", unix))]
-pub mod select_skim;
+pub(crate) mod select_skim;
 #[cfg(feature = "select-skim-bin")]
 pub mod select_skim_bin;
-pub mod stdin;
-pub mod style;
-pub mod sync;
+pub(crate) mod stdin;
+pub(crate) mod style;
+pub(crate) mod sync;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 pub mod time;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
@@ -34,7 +34,7 @@ use crate::util::error::{quit_error_msg, ErrorHints};
 /// Quit on error.
 // TODO: do not wrap commands in sh/cmd, we should not have to do this and only causes problems
 // TODO: provide list of arguments instead of a command string for better reliability/compatability
-pub fn invoke_cmd(cmd: String, dir: Option<&Path>, verbose: bool) -> Result<(), std::io::Error> {
+pub(crate) fn invoke_cmd(cmd: String, dir: Option<&Path>, verbose: bool) -> Result<(), std::io::Error> {
     if verbose {
         eprintln!("Invoking: {}\n", cmd);
     }
@@ -72,7 +72,7 @@ pub fn invoke_cmd(cmd: String, dir: Option<&Path>, verbose: bool) -> Result<(), 
 /// - name in first item of program arguments via `std::env::args`
 /// - current executable name via `std::env::current_exe`
 /// - crate name
-pub fn bin_name() -> String {
+pub(crate) fn bin_name() -> String {
     env::args_os()
         .next()
         .filter(|path| !path.is_empty())

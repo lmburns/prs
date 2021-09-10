@@ -3,14 +3,14 @@ use clap::ArgMatches;
 use super::Matcher;
 
 /// The sync remote command matcher.
-pub struct RemoteMatcher<'a> {
+pub(crate) struct RemoteMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> RemoteMatcher<'a> {
     /// Get the git URL to set.
-    pub fn git_url(&self) -> Option<&str> {
+    pub(crate) fn git_url(&self) -> Option<&str> {
         self.matches.value_of("GIT_URL")
     }
 }

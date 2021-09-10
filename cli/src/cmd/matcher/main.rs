@@ -3,6 +3,7 @@ use clap::ArgMatches;
 use super::Matcher;
 
 /// The main command matcher.
+#[derive(Debug)]
 pub struct MainMatcher<'a> {
     matches: &'a ArgMatches,
 }

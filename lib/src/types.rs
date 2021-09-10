@@ -140,6 +140,23 @@ impl Plaintext {
             .ok_or_else(|| Err::Property(property.to_lowercase()).into())
     }
 
+    /// Return OTP code
+    pub fn otp(&self) -> Result<Plaintext> {
+        self.unsecure_to_str()
+            .map_err(Err::Utf8)?
+            .lines()
+            .skip(1)
+            .find_map(|line| {
+                let mut parts = line.splitn(2, PROPERTY_DELIMITER);
+                if parts.next().unwrap().trim().to_uppercase() == "otp" {
+                    Some(parts.next().map(|value| value.trim()).unwrap_or("").into())
+                } else {
+                    None
+                }
+            })
+            .ok_or_else(|| Err::Property("otp".to_lowercase()).into())
+    }
+
     /// Append other plaintext.
     ///
     /// Optionally adds platform newline.

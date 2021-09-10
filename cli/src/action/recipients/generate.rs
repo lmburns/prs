@@ -22,18 +22,18 @@ const BIN_NAME: &str = "gpg";
 const BIN_NAME: &str = "gpg.exe";
 
 /// A recipients generate action.
-pub struct Generate<'a> {
+pub(crate) struct Generate<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Generate<'a> {
     /// Construct a new generate action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the generate action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_recipients = RecipientsMatcher::with(self.cmd_matches).unwrap();
@@ -143,7 +143,7 @@ impl<'a> Generate<'a> {
 /// Invoke GPG generate command.
 ///
 /// Return new keys as recipients.
-pub fn gpg_generate(matcher_main: &MainMatcher) -> Result<Recipients> {
+pub(crate) fn gpg_generate(matcher_main: &MainMatcher) -> Result<Recipients> {
     // List recipients before
     let mut context = crate::crypto::context(&matcher_main)?;
     let before = Recipients::from(context.keys_private()?);
@@ -169,7 +169,7 @@ pub fn gpg_generate(matcher_main: &MainMatcher) -> Result<Recipients> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

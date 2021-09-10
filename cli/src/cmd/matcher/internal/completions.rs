@@ -1,6 +1,4 @@
-use std::fmt;
-use std::io::Write;
-use std::path::PathBuf;
+use std::{fmt, io::Write, path::PathBuf};
 
 use clap::{App, ArgMatches};
 use clap_generate::generators;
@@ -9,14 +7,14 @@ use super::Matcher;
 use crate::util;
 
 /// The completions completions command matcher.
-pub struct CompletionsMatcher<'a> {
+pub(crate) struct CompletionsMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> CompletionsMatcher<'a> {
     /// Get the shells to generate completions for.
-    pub fn shells(&'a self) -> Vec<Shell> {
+    pub(crate) fn shells(&'a self) -> Vec<Shell> {
         // Get the raw list of shells
         let raw = self
             .matches
@@ -27,14 +25,13 @@ impl<'a: 'b, 'b> CompletionsMatcher<'a> {
         let mut shells: Vec<_> = raw
             .into_iter()
             .map(|name| name.trim().to_lowercase())
-            .map(|name| {
+            .flat_map(|name| {
                 if name == "all" {
                     Shell::variants().iter().map(|s| s.name().into()).collect()
                 } else {
                     vec![name]
                 }
             })
-            .flatten()
             .collect();
         shells.sort_unstable();
         shells.dedup();
@@ -47,24 +44,22 @@ impl<'a: 'b, 'b> CompletionsMatcher<'a> {
     }
 
     /// The target directory to output the shell completion files to.
-    pub fn output(&'a self) -> PathBuf {
+    pub(crate) fn output(&'a self) -> PathBuf {
         self.matches
             .value_of("output")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from("./"))
+            .map_or_else(|| PathBuf::from("./"), PathBuf::from)
     }
 
     /// Whether to print completion scripts to stdout.
-    pub fn stdout(&'a self) -> bool {
+    pub(crate) fn stdout(&'a self) -> bool {
         self.matches.is_present("stdout")
     }
 
     /// Name of binary to generate completions for.
-    pub fn name(&'a self) -> String {
+    pub(crate) fn name(&'a self) -> String {
         self.matches
             .value_of("name")
-            .map(|n| n.into())
-            .unwrap_or(util::bin_name())
+            .map_or_else(util::bin_name, |n| n.into())
     }
 }
 
@@ -79,7 +74,8 @@ impl<'a> Matcher<'a> for CompletionsMatcher<'a> {
 
 /// Available shells.
 #[derive(Copy, Clone)]
-pub enum Shell {
+#[allow(clippy::enum_variant_names)]
+pub(crate) enum Shell {
     Bash,
     Elvish,
     Fish,
@@ -89,7 +85,7 @@ pub enum Shell {
 
 impl Shell {
     /// List all supported shell variants.
-    pub fn variants() -> &'static [Shell] {
+    pub(crate) fn variants() -> &'static [Shell] {
         &[
             Shell::Bash,
             Shell::Elvish,
@@ -100,7 +96,7 @@ impl Shell {
     }
 
     /// Select shell variant from name.
-    pub fn from_str(shell: &str) -> Option<Shell> {
+    pub(crate) fn from_str(shell: &str) -> Option<Shell> {
         match shell.trim().to_ascii_lowercase().as_str() {
             "bash" => Some(Shell::Bash),
             "elvish" => Some(Shell::Elvish),
@@ -112,7 +108,7 @@ impl Shell {
     }
 
     /// Get shell name.
-    pub fn name(self) -> &'static str {
+    pub(crate) fn name(self) -> &'static str {
         match self {
             Shell::Bash => "bash",
             Shell::Elvish => "elvish",
@@ -123,7 +119,7 @@ impl Shell {
     }
 
     /// Suggested file name for completions file of current shell.
-    pub fn file_name(self, bin_name: &str) -> String {
+    pub(crate) fn file_name(self, bin_name: &str) -> String {
         match self {
             Shell::Bash => format!("{}.bash", bin_name),
             Shell::Elvish => format!("{}.elv", bin_name),
@@ -134,7 +130,7 @@ impl Shell {
     }
 
     /// Generate completion script.
-    pub fn generate<S>(self, app: &mut App<'_>, bin_name: S, buf: &mut dyn Write)
+    pub(crate) fn generate<S>(self, app: &mut App<'_>, bin_name: S, buf: &mut dyn Write)
     where
         S: Into<String>,
     {
@@ -142,9 +138,8 @@ impl Shell {
             Shell::Bash => clap_generate::generate::<generators::Bash, _>(app, bin_name, buf),
             Shell::Elvish => clap_generate::generate::<generators::Elvish, _>(app, bin_name, buf),
             Shell::Fish => clap_generate::generate::<generators::Fish, _>(app, bin_name, buf),
-            Shell::PowerShell => {
-                clap_generate::generate::<generators::PowerShell, _>(app, bin_name, buf)
-            }
+            Shell::PowerShell =>
+                clap_generate::generate::<generators::PowerShell, _>(app, bin_name, buf),
             Shell::Zsh => clap_generate::generate::<generators::Zsh, _>(app, bin_name, buf),
         }
     }
@@ -157,20 +152,20 @@ impl Shell {
     // {
     //     match self {
     //         Shell::Bash => {
-    //             clap_generate::generate_to::<generators::Bash, _, _>(app, bin_name, out_dir)
-    //         }
+    //             clap_generate::generate_to::<generators::Bash, _, _>(app,
+    // bin_name, out_dir)         }
     //         Shell::Elvish => {
-    //             clap_generate::generate_to::<generators::Elvish, _, _>(app, bin_name, out_dir)
-    //         }
+    //             clap_generate::generate_to::<generators::Elvish, _, _>(app,
+    // bin_name, out_dir)         }
     //         Shell::Fish => {
-    //             clap_generate::generate_to::<generators::Fish, _, _>(app, bin_name, out_dir)
-    //         }
+    //             clap_generate::generate_to::<generators::Fish, _, _>(app,
+    // bin_name, out_dir)         }
     //         Shell::PowerShell => {
-    //             clap_generate::generate_to::<generators::PowerShell, _, _>(app, bin_name, out_dir)
-    //         }
+    //             clap_generate::generate_to::<generators::PowerShell, _, _>(app,
+    // bin_name, out_dir)         }
     //         Shell::Zsh => {
-    //             clap_generate::generate_to::<generators::Zsh, _, _>(app, bin_name, out_dir)
-    //         }
+    //             clap_generate::generate_to::<generators::Zsh, _, _>(app,
+    // bin_name, out_dir)         }
     //     }
     // }
 }

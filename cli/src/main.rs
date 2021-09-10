@@ -4,7 +4,7 @@
     clippy::correctness,
     clippy::perf,
     clippy::pedantic,
-    clippy::style,
+    clippy::style
 )]
 #![deny(
     absolute_paths_not_starting_with_crate,
@@ -44,9 +44,8 @@
     variant_size_differences,
     while_true
 )]
-
 #![allow(
-//     clippy::similar_names,
+    clippy::similar_names,
     clippy::struct_excessive_bools,
 //     clippy::shadow_reuse,
 //     clippy::too_many_lines,
@@ -60,27 +59,79 @@ mod crypto;
 mod util;
 mod vendor;
 
-use clap::{crate_name, crate_version, crate_description};
+use std::{error, io, sync::Once};
+
 use anyhow::Result;
+use clap::{crate_description, crate_name, crate_version};
 use prs_lib::Store;
 
 use crate::{
-    cmd::matcher::{MainMatcher, Matcher},
-    cmd::Handler,
+    cmd::{
+        matcher::{MainMatcher, Matcher},
+        Handler,
+    },
     util::{
         error::{quit, quit_error, ErrorHints},
         style,
     },
 };
 
+use tracing::{level_filters::LevelFilter, Level};
+use tracing_subscriber::{
+    fmt::{
+        format::{Format, Pretty},
+        SubscriberBuilder,
+    },
+    EnvFilter, FmtSubscriber,
+};
+
+/// Call initialization once
+static ONCE: Once = Once::new();
+
+/// Tracing environment variable
+const LOG_ENV: &str = "PRS_LOG";
+
 /// Clipboard timeout in seconds.
 #[cfg(feature = "clipboard")]
 const CLIPBOARD_TIMEOUT: u64 = 20;
+
+fn error_and_exit<E: error::Error>(err: E) -> ! {
+    let _dropped = get_subscriber().try_init();
+    tracing::error!("{}", err);
+    std::process::exit(1);
+}
+
+type Subscriber = SubscriberBuilder<Pretty, Format<Pretty, ()>, LevelFilter, fn() -> io::Stdout>;
+fn get_subscriber() -> Subscriber {
+    FmtSubscriber::builder()
+        .pretty()
+        .with_ansi(true)
+        .with_level(true)
+        .with_target(false)
+        .without_time()
+        .with_max_level(if cfg!(debug_assertions) {
+            Level::DEBUG
+        } else {
+            Level::INFO
+        })
+}
 
 fn main() {
     // Do not use colored output on Windows
     #[cfg(windows)]
     colored::control::set_override(false);
+
+    let subscriber = get_subscriber();
+    ONCE.call_once(|| match std::env::var_os(LOG_ENV) {
+        Some(_) => match EnvFilter::try_from_env(LOG_ENV) {
+            Err(err) => error_and_exit(err),
+            Ok(filter) => subscriber
+                .with_env_filter(filter)
+                .with_filter_reloading()
+                .init(),
+        },
+        None => subscriber.init(),
+    });
 
     // Parse CLI arguments
     let cmd_handler = Handler::parse();
@@ -150,6 +201,10 @@ fn invoke_action(handler: &Handler) -> Result<()> {
         return action::list::List::new(handler.matches()).invoke();
     }
 
+    if handler.otp().is_some() {
+        return action::otp::Otp::new(handler.matches()).invoke();
+    }
+
     if handler.recipients().is_some() {
         return action::recipients::Recipients::new(handler.matches()).invoke();
     }
@@ -173,6 +228,7 @@ fn invoke_action(handler: &Handler) -> Result<()> {
 
     // Get the main matcher
     let matcher_main = MainMatcher::with(handler.matches()).unwrap();
+    println!("MAIN: {:#?}", matcher_main);
     if !matcher_main.quiet() {
         print_main_info(&matcher_main);
     }
@@ -181,13 +237,14 @@ fn invoke_action(handler: &Handler) -> Result<()> {
 }
 
 /// Print the main info, shown when no subcommands were supplied.
+#[allow(clippy::missing_panics_doc)]
 pub fn print_main_info(matcher_main: &MainMatcher) -> ! {
     // Get the name of the used executable
     let bin = util::bin_name();
 
     // Attempt to load default store
     let store = Store::open(prs_lib::STORE_DEFAULT_ROOT).ok();
-    let has_sync = store.as_ref().map(|s| s.sync().is_init()).unwrap_or(false);
+    let has_sync = store.as_ref().map_or(false, |s| s.sync().is_init());
 
     // Print the main info
     eprintln!("{} {}", crate_name!(), crate_version!());
@@ -195,17 +252,8 @@ pub fn print_main_info(matcher_main: &MainMatcher) -> ! {
     eprintln!(crate_description!());
     eprintln!();
 
-    if store.is_none() {
-        eprintln!("Initialize a new password store or clone an existing one:");
-        eprintln!("    {}", style::highlight(&format!("{} init", bin)));
-        eprintln!(
-            "    {}",
-            style::highlight(&format!("{} clone <GIT_URL>", bin))
-        );
-        eprintln!();
-    } else {
-        let store = store.unwrap();
-
+    #[allow(clippy::branches_sharing_code)]
+    if let Ok(store) = Store::open(prs_lib::STORE_DEFAULT_ROOT) {
         // Hint user to add ourselves as recipient if it doesn't have recipient we own
         let we_own_any_recipient = store
             .recipients()
@@ -271,6 +319,14 @@ pub fn print_main_info(matcher_main: &MainMatcher) -> ! {
             eprintln!("    {}", style::highlight(&format!("{} sync init", bin)));
             eprintln!();
         }
+    } else {
+        eprintln!("Initialize a new password store or clone an existing one:");
+        eprintln!("    {}", style::highlight(&format!("{} init", bin)));
+        eprintln!(
+            "    {}",
+            style::highlight(&format!("{} clone <GIT_URL>", bin))
+        );
+        eprintln!();
     }
 
     eprintln!("Show all subcommands, features and other help:");

@@ -10,18 +10,18 @@ use crate::cmd::matcher::{internal::clip_revert::ClipRevertMatcher, MainMatcher,
 use crate::util::clipboard;
 
 /// A internal clipboard revert action.
-pub struct ClipRevert<'a> {
+pub(crate) struct ClipRevert<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> ClipRevert<'a> {
     /// Construct a new clipboard revert action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the clipboard revert action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_clip_revert = ClipRevertMatcher::with(self.cmd_matches).unwrap();
@@ -58,7 +58,7 @@ impl<'a> ClipRevert<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to get current clipboard contents")]
     Current(#[source] anyhow::Error),
 

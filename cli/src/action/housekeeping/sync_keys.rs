@@ -17,18 +17,18 @@ use crate::{
 };
 
 /// A housekeeping sync-keys action.
-pub struct SyncKeys<'a> {
+pub(crate) struct SyncKeys<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> SyncKeys<'a> {
     /// Construct a new sync-keys action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the sync-keys action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_housekeeping = HousekeepingMatcher::with(self.cmd_matches).unwrap();
@@ -109,7 +109,7 @@ fn import_missing_keys(store: &Store, quiet: bool, verbose: bool) -> Result<()> 
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

@@ -12,18 +12,18 @@ use crate::util::tomb;
 use crate::util::{self, error, select, style, sync};
 
 /// A recipients add action.
-pub struct Add<'a> {
+pub(crate) struct Add<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Add<'a> {
     /// Construct a new add action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the add action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_recipients = RecipientsMatcher::with(self.cmd_matches).unwrap();
@@ -112,7 +112,7 @@ pub(crate) fn cannot_decrypt_show_recrypt_hints() {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

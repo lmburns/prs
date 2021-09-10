@@ -5,10 +5,10 @@ use crate::cmd::arg::ArgTimeout;
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgStore, CmdArg};
 
 /// The generate command definition.
-pub struct CmdGenerate;
+pub(crate) struct CmdGenerate;
 
 impl CmdGenerate {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         let cmd = App::new("generate")
             .alias("gen")
             .alias("g")

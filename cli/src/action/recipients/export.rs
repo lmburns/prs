@@ -17,18 +17,18 @@ use crate::util::select;
 use crate::util::tomb;
 
 /// A recipients export action.
-pub struct Export<'a> {
+pub(crate) struct Export<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Export<'a> {
     /// Construct a new export action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the export action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_recipients = RecipientsMatcher::with(self.cmd_matches).unwrap();
@@ -85,7 +85,7 @@ impl<'a> Export<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

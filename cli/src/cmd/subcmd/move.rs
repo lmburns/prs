@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, ArgStore, CmdArg};
 
 /// The move command definition.
-pub struct CmdMove;
+pub(crate) struct CmdMove;
 
 impl CmdMove {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("move")
             .alias("mov")
             .alias("mv")

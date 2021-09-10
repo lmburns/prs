@@ -1,14 +1,14 @@
 #[cfg(feature = "clipboard")]
-pub mod clip_revert;
-pub mod completions;
+pub(crate) mod clip_revert;
+pub(crate) mod completions;
 
 use clap::{App, AppSettings};
 
 /// The internal command definition.
-pub struct CmdInternal;
+pub(crate) struct CmdInternal;
 
 impl CmdInternal {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         #[allow(unused_mut)]
         let mut cmd = App::new("internal")
             .about("Commands used by prs internally")

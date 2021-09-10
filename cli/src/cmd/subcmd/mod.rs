@@ -1,35 +1,35 @@
-pub mod add;
+pub(crate) mod add;
 #[cfg(feature = "alias")]
-pub mod alias;
-pub mod clone;
+pub(crate) mod alias;
+pub(crate) mod clone;
 #[cfg(feature = "clipboard")]
-pub mod copy;
-pub mod duplicate;
-pub mod edit;
-pub mod generate;
-pub mod git;
-pub mod housekeeping;
-pub mod init;
-pub mod internal;
-pub mod list;
-pub mod r#move;
-pub mod otp;
-pub mod recipients;
-pub mod remove;
-pub mod show;
-pub mod sync;
+pub(crate) mod copy;
+pub(crate) mod duplicate;
+pub(crate) mod edit;
+pub(crate) mod generate;
+pub(crate) mod git;
+pub(crate) mod housekeeping;
+pub(crate) mod init;
+pub(crate) mod internal;
+pub(crate) mod list;
+pub(crate) mod r#move;
+pub(crate) mod otp;
+pub(crate) mod recipients;
+pub(crate) mod remove;
+pub(crate) mod show;
+pub(crate) mod sync;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 pub mod tomb;
 
 // Re-export to cmd module
 #[cfg(feature = "alias")]
-pub use self::alias::CmdAlias;
+pub(crate) use self::alias::CmdAlias;
 #[cfg(feature = "clipboard")]
-pub use self::copy::CmdCopy;
+pub(crate) use self::copy::CmdCopy;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 pub use self::tomb::CmdTomb;
 #[rustfmt::skip]
-pub use self::{
+pub(crate) use self::{
     add::CmdAdd,
     clone::CmdClone,
     duplicate::CmdDuplicate,

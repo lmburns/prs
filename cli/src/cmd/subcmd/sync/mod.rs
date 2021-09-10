@@ -1,15 +1,15 @@
-pub mod init;
-pub mod remote;
+pub(crate) mod init;
+pub(crate) mod remote;
 
 use clap::App;
 
 use crate::cmd::arg::{ArgAllowDirty, ArgStore, CmdArg};
 
 /// The sync command definition.
-pub struct CmdSync;
+pub(crate) struct CmdSync;
 
 impl CmdSync {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("sync")
             .alias("s")
             .about("Sync password store")

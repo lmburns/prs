@@ -1,10 +1,10 @@
 use clap::App;
 
 /// The recipient list command definition.
-pub struct CmdList;
+pub(crate) struct CmdList;
 
 impl CmdList {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("list")
             .alias("ls")
             .alias("l")

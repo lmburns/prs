@@ -5,34 +5,34 @@ use super::Matcher;
 use crate::cmd::arg::{ArgProperty, ArgQuery, ArgStore, ArgTimeout, CmdArgOption};
 
 /// The copy command matcher.
-pub struct CopyMatcher<'a> {
+pub(crate) struct CopyMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> CopyMatcher<'a> {
     /// Check whether to copy all of the secret.
-    pub fn all(&self) -> bool {
+    pub(crate) fn all(&self) -> bool {
         self.matches.is_present("all")
     }
 
     /// The secret query.
-    pub fn query(&self) -> Option<String> {
+    pub(crate) fn query(&self) -> Option<String> {
         ArgQuery::value(self.matches)
     }
 
     /// Clipboard timeout in seconds.
-    pub fn timeout(&self) -> Result<u64> {
+    pub(crate) fn timeout(&self) -> Result<u64> {
         ArgTimeout::value_or_default(self.matches)
     }
 
     /// The store.
-    pub fn store(&self) -> String {
+    pub(crate) fn store(&self) -> String {
         ArgStore::value(self.matches)
     }
 
     /// The selected property.
-    pub fn property(&self) -> Option<&str> {
+    pub(crate) fn property(&self) -> Option<&str> {
         ArgProperty::value(self.matches)
     }
 }

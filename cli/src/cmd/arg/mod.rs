@@ -1,14 +1,14 @@
-pub mod allow_dirty;
-pub mod no_sync;
-pub mod property;
-pub mod query;
-pub mod store;
-pub mod timeout;
+pub(crate) mod allow_dirty;
+pub(crate) mod no_sync;
+pub(crate) mod property;
+pub(crate) mod query;
+pub(crate) mod store;
+pub(crate) mod timeout;
 
 use clap::{Arg, ArgMatches};
 
 // Re-export to arg module
-pub use self::{
+pub(crate) use self::{
     allow_dirty::ArgAllowDirty, no_sync::ArgNoSync, property::ArgProperty, query::ArgQuery,
     store::ArgStore, timeout::ArgTimeout,
 };
@@ -16,7 +16,7 @@ pub use self::{
 /// A generic trait, for a reusable command argument struct.
 /// The `CmdArgFlag` and `CmdArgOption` traits further specify what kind of
 /// argument this is.
-pub trait CmdArg {
+pub(crate) trait CmdArg {
     /// Get the argument name that is used as main identifier.
     fn name() -> &'static str;
 
@@ -27,7 +27,7 @@ pub trait CmdArg {
 /// This `CmdArg` specification defines that this argument may be tested as
 /// flag. This will allow to test whether the flag is present in the given
 /// matches.
-pub trait CmdArgFlag: CmdArg {
+pub(crate) trait CmdArgFlag: CmdArg {
     /// Check whether the argument is present in the given matches.
     #[allow(single_use_lifetimes)]
     #[allow(unused_lifetimes)]
@@ -38,7 +38,7 @@ pub trait CmdArgFlag: CmdArg {
 
 /// This `CmdArg` specification defines that this argument may be tested as
 /// option. This will allow to fetch the value of the argument.
-pub trait CmdArgOption<'a>: CmdArg {
+pub(crate) trait CmdArgOption<'a>: CmdArg {
     /// The type of the argument value.
     type Value;
 

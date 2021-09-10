@@ -1,7 +1,7 @@
-pub mod arg;
-pub mod handler;
-pub mod matcher;
-pub mod subcmd;
+pub(crate) mod arg;
+pub(crate) mod handler;
+pub(crate) mod matcher;
+pub(crate) mod subcmd;
 
 // Re-export modules
-pub use self::handler::Handler;
+pub(crate) use self::handler::Handler;

@@ -8,18 +8,18 @@ use thiserror::Error;
 use crate::cmd::matcher::{internal::completions::CompletionsMatcher, main::MainMatcher, Matcher};
 
 /// A file completions action.
-pub struct Completions<'a> {
+pub(crate) struct Completions<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Completions<'a> {
     /// Construct a new completions action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the completions action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_completions = CompletionsMatcher::with(self.cmd_matches).unwrap();
@@ -66,7 +66,7 @@ impl<'a> Completions<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Error {
+pub(crate) enum Error {
     /// An error occurred while creating the output directory.
     #[error("failed to create output directory, it doesn't exist")]
     CreateOutputDir(#[source] io::Error),

@@ -13,18 +13,18 @@ use crate::util::tomb;
 use crate::util::{cli, error, select, sync};
 
 /// Move secret action.
-pub struct Move<'a> {
+pub(crate) struct Move<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Move<'a> {
     /// Construct a new move action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the move action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_move = MoveMatcher::with(self.cmd_matches).unwrap();
@@ -188,7 +188,7 @@ fn update_alias(store: &Store, src: &Secret, symlink: &Path, future_symlink: &Pa
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

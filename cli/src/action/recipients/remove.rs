@@ -12,18 +12,18 @@ use crate::util::tomb;
 use crate::util::{cli, error, select, sync};
 
 /// A recipients remove action.
-pub struct Remove<'a> {
+pub(crate) struct Remove<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Remove<'a> {
     /// Construct a new remove action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the remove action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_recipients = RecipientsMatcher::with(self.cmd_matches).unwrap();
@@ -111,7 +111,7 @@ impl<'a> Remove<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

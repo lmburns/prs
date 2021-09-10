@@ -22,7 +22,8 @@ pub fn dir_size(path: &Path) -> Result<u64, Err> {
 
 /// Copy contents of one directory to another.
 ///
-/// This will only copy directory contents recursively. This will not copy the directory itself.
+/// This will only copy directory contents recursively. This will not copy the
+/// directory itself.
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 pub fn copy_dir_contents(from: &Path, to: &Path) -> Result<()> {
     let mut options = CopyOptions::new();

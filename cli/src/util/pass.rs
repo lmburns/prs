@@ -25,7 +25,7 @@ const PASSWORD_CHAR_SETS: [&str; 4] = [
 /// # Panics
 ///
 /// Panics if `len` is shorter than the number of sets in `PASSWORD_CHAR_SETS`.
-pub fn generate_password(len: u16) -> Plaintext {
+pub(crate) fn generate_password(len: u16) -> Plaintext {
     assert!(
         len as usize >= PASSWORD_CHAR_SETS.len(),
         "password length shorter than character set count",

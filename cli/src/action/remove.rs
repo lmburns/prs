@@ -16,18 +16,18 @@ use crate::util::tomb;
 use crate::util::{cli, error, select, sync};
 
 /// Remove secret action.
-pub struct Remove<'a> {
+pub(crate) struct Remove<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Remove<'a> {
     /// Construct a new remove action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the remove action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_remove = RemoveMatcher::with(self.cmd_matches).unwrap();
@@ -144,7 +144,7 @@ fn remove_confirm(
 ///
 /// Collect all secrets that are a symlink which target the given `secret`.
 #[cfg(feature = "alias")]
-pub fn find_symlinks_to(store: &Store, secret: &Secret) -> Vec<Secret> {
+pub(crate) fn find_symlinks_to(store: &Store, secret: &Secret) -> Vec<Secret> {
     // Configure secret iterator to only find symlinks
     let mut config = SecretIterConfig::default();
     config.find_files = false;
@@ -180,7 +180,7 @@ pub fn find_symlinks_to(store: &Store, secret: &Secret) -> Vec<Secret> {
 /// If the given `secret` still exists, the directory is never removed because it is not empty.
 ///
 /// This never errors, but reports an error to the user when it does.
-pub fn remove_empty_secret_dir(secret: &Secret) {
+pub(crate) fn remove_empty_secret_dir(secret: &Secret) {
     // Remove secret directory if empty
     if let Err(err) = remove_empty_dir(secret.path.parent().unwrap(), true) {
         error::print_error(
@@ -229,7 +229,7 @@ fn remove_empty_dir(path: &Path, remove_empty_parents: bool) -> Result<(), io::E
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

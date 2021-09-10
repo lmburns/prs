@@ -24,18 +24,18 @@ use crate::{
 };
 
 /// A housekeeping run action.
-pub struct Run<'a> {
+pub(crate) struct Run<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Run<'a> {
     /// Construct a new run action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the run action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_housekeeping = HousekeepingMatcher::with(self.cmd_matches).unwrap();
@@ -174,7 +174,7 @@ fn set_git_attributes(store: &Store) -> Result<(), std::io::Error> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

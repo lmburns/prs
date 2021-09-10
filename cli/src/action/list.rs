@@ -4,7 +4,7 @@ use anyhow::Result;
 use clap::ArgMatches;
 use prs_lib::{store::SecretIterConfig, Secret, Store};
 use text_trees::{FormatCharacters, StringTreeNode, TreeFormatting};
-use colored::*;
+use colored::Colorize;
 use thiserror::Error;
 
 #[cfg(all(feature = "tomb", target_os = "linux"))]
@@ -14,18 +14,18 @@ use crate::cmd::matcher::{list::ListMatcher, Matcher};
 use crate::util::tomb;
 
 /// List secrets action.
-pub struct List<'a> {
+pub(crate) struct List<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> List<'a> {
     /// Construct a new list action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the list action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         #[cfg(all(feature = "tomb", target_os = "linux"))]
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
@@ -147,7 +147,7 @@ fn tree_nodes(prefix: &str, mut secrets: &[&str]) -> Vec<StringTreeNode> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

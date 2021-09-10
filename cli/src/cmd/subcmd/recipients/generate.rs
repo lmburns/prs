@@ -3,10 +3,10 @@ use clap::{App, Arg};
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg};
 
 /// The recipient generate command definition.
-pub struct CmdGenerate;
+pub(crate) struct CmdGenerate;
 
 impl CmdGenerate {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("generate")
             .alias("gen")
             .alias("g")

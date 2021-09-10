@@ -3,7 +3,7 @@ use clap::{Arg, ArgMatches};
 use super::{CmdArg, CmdArgOption};
 
 /// The query argument.
-pub struct ArgQuery {}
+pub(crate) struct ArgQuery {}
 
 impl CmdArg for ArgQuery {
     fn name() -> &'static str {

@@ -107,7 +107,7 @@ fn skim_select(items: SkimItemReceiver, prompt: &str) -> Option<String> {
 }
 
 /// Wrapped store secret item for skim.
-pub struct SkimSecret(Secret);
+pub(crate) struct SkimSecret(Secret);
 
 impl From<Secret> for SkimSecret {
     fn from(secret: Secret) -> Self {
@@ -130,7 +130,7 @@ impl SkimItem for SkimSecret {
 }
 
 /// Select secret.
-pub fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
+pub(crate) fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
     // Return if theres just one to choose
     if secrets.len() == 1 {
         return secrets.get(0);
@@ -146,7 +146,7 @@ pub fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
 }
 
 /// Select key.
-pub fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
+pub(crate) fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
     // Let user select secret
     let items = skim_key_items(keys);
     let selected = skim_select(items, prompt.unwrap_or("Select key"))?;
@@ -193,7 +193,7 @@ fn skim_items<I: SkimItem>(items: Vec<I>) -> SkimItemReceiver {
 }
 
 /// Wrapped store key item for skim.
-pub struct SkimKey(Key);
+pub(crate) struct SkimKey(Key);
 
 impl From<Key> for SkimKey {
     fn from(key: Key) -> Self {

@@ -5,7 +5,7 @@ use prs_lib::{store::FindSecret, Key, Secret, Store};
 /// If no exact secret is found, the user will be able to choose.
 ///
 /// `None` is returned if no secret was found or selected.
-pub fn store_select_secret(store: &Store, query: Option<String>) -> Option<Secret> {
+pub(crate) fn store_select_secret(store: &Store, query: Option<String>) -> Option<Secret> {
     // TODO: do not use interactive selection with --no-interact mode
     #[allow(unreachable_code)]
     match store.find(query) {
@@ -35,7 +35,7 @@ pub fn store_select_secret(store: &Store, query: Option<String>) -> Option<Secre
 
 /// Select key.
 #[allow(unreachable_code)]
-pub fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
+pub(crate) fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
     // TODO: do not use interactive selection with --no-interact mode
     #[cfg(all(feature = "select-skim", unix))]
     {

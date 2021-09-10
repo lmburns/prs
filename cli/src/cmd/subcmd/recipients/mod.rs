@@ -1,18 +1,18 @@
-pub mod add;
-pub mod export;
-pub mod generate;
-pub mod list;
-pub mod remove;
+pub(crate) mod add;
+pub(crate) mod export;
+pub(crate) mod generate;
+pub(crate) mod list;
+pub(crate) mod remove;
 
 use clap::{App, AppSettings};
 
 use crate::cmd::arg::{ArgStore, CmdArg};
 
 /// The recipients command definition.
-pub struct CmdRecipients;
+pub(crate) struct CmdRecipients;
 
 impl CmdRecipients {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("recipients")
             .about("Manage store recipients")
             .alias("recipient")

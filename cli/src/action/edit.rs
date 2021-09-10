@@ -11,18 +11,18 @@ use crate::{
 };
 
 /// Edit secret plaintext action.
-pub struct Edit<'a> {
+pub(crate) struct Edit<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Edit<'a> {
     /// Construct a new edit action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the edit action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_edit = EditMatcher::with(self.cmd_matches).unwrap();
@@ -57,14 +57,13 @@ impl<'a> Edit<'a> {
         if matcher_edit.stdin() {
             plaintext = stdin::read_plaintext(!matcher_main.quiet())?;
         } else {
-            plaintext = match edit::edit(&plaintext).map_err(Err::Edit)? {
-                Some(changed) => changed,
-                None => {
-                    if !matcher_main.quiet() {
-                        eprintln!("Secret is unchanged");
-                    }
-                    error::quit();
-                },
+            plaintext = if let Some(changed) = edit::edit(&plaintext).map_err(Err::Edit)? {
+                changed
+            } else {
+                if !matcher_main.quiet() {
+                    eprintln!("Secret is unchanged");
+                }
+                error::quit();
             };
         }
 
@@ -104,7 +103,7 @@ impl<'a> Edit<'a> {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

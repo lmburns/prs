@@ -5,12 +5,12 @@ use thiserror::Error;
 use super::{CmdArg, CmdArgOption};
 
 /// The timeout argument.
-pub struct ArgTimeout {}
+pub(crate) struct ArgTimeout {}
 
 impl ArgTimeout {
     #[cfg(feature = "clipboard")]
     #[allow(unused_lifetimes)]
-    pub fn value_or_default<'a, 'b: 'a>(matches: &'a ArgMatches) -> Result<u64> {
+    pub(crate) fn value_or_default<'a, 'b: 'a>(matches: &'a ArgMatches) -> Result<u64> {
         Self::value(matches).unwrap_or(Ok(crate::CLIPBOARD_TIMEOUT))
     }
 }
@@ -43,7 +43,7 @@ impl<'a> CmdArgOption<'a> for ArgTimeout {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to parse timeout as seconds")]
     Parse(#[source] std::num::ParseIntError),
 }
