@@ -1,4 +1,4 @@
-use crate::{store::Store, OTP_DEFUALT_FILE};
+use crate::{crypto::IsContext, store::{Store, Secret}, types::Plaintext, OTP_DEFUALT_FILE};
 use anyhow::Result;
 use data_encoding::{DecodeError, BASE32_NOPAD};
 use ring::hmac;
@@ -23,10 +23,8 @@ pub enum OtpError {
     #[error("failure to write to file: {0}")]
     WriteFile(#[source] io::Error),
 
-    // #[error("failure to deserialize file to string: {0}")]
-    // Deserialization(#[from] toml::de::Error),
-    #[error("failure to deserialize file to string: {0}")]
-    Deserialization(#[from] serde_json::Error),
+    #[error("failure to serialize/deserialize file to string: {0}")]
+    SerDeserialization(#[from] serde_json::Error),
 
     /// Invalid time
     #[error("invalid time provided")]
@@ -36,9 +34,17 @@ pub enum OtpError {
     #[error("invalid digest provided: {:?}", _0)]
     InvalidDigest(Vec<u8>),
 
-    /// Invalid secret for encryption
-    #[error("error decoding")]
-    Decode(#[source] DecodeError),
+    #[error("failed to write decrypted unserialized file")]
+    Write(#[source] std::io::Error),
+
+    #[error("failed to decrypt otp file")]
+    Decrypt(#[source] anyhow::Error),
+
+    #[error("failed to encrypt otp file")]
+    Encrypt(#[source] anyhow::Error),
+
+    #[error("failed to read from file")]
+    ReadFile(#[source] std::io::Error),
 }
 
 /// Available hashing algorithms
@@ -231,6 +237,15 @@ pub struct Account {
     pub counter:       Option<u64>,
 }
 
+impl From<Account> for Secret {
+    fn from(account: Account) -> Self {
+        Self {
+            name: account.name,
+            path: account.path
+        }
+    }
+}
+
 /// File that keeps track of all files containing OTP's
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct OtpFile(BTreeMap<String, Account>);
@@ -242,42 +257,90 @@ impl Default for OtpFile {
 }
 
 impl OtpFile {
+    /// Create a new instance of or open an existing OTP hashing file
     pub fn new(store: &Store) -> Result<Self> {
         let otp_file = store.root.join(OTP_DEFUALT_FILE);
         if !otp_file.exists() {
             tracing::debug!("creating parent dir of otp_file");
             otp_file.parent().map(fs::create_dir_all).transpose()?;
+        } else {
+            let plaintext = crate::crypto::context(&crate::CONFIG)?
+                .decrypt_file(&otp_file)
+                .map_err(OtpError::Decrypt)?;
+            tracing::debug!("decrypting file");
+            let read: BTreeMap<String, Account> = serde_json::from_slice(plaintext.unsecure_ref())
+                .map_err(OtpError::SerDeserialization)?;
+            tracing::debug!("READ: {:#?}", read);
+
+            fs::write(
+                &otp_file,
+                serde_json::to_string_pretty(&read).map_err(OtpError::SerDeserialization)?,
+            )
+            .map_err(OtpError::Write)?;
         }
+
         let reader = match fs::File::open(otp_file.as_path()) {
             Ok(file) => file,
             Err(err) =>
                 if err.kind() == io::ErrorKind::NotFound {
-                    tracing::debug!("creating new opt file");
+                    tracing::debug!("creating new otp file");
                     return Ok(Self::default());
                 } else {
                     tracing::error!(error=%err);
                     return Err(err.into());
                 },
         };
+
         serde_json::from_reader(reader).map_err(Into::into)
     }
 
+    /// Close the OTP file by encrypting it and writing back to disk
+    pub fn close(store: &Store) -> Result<()> {
+        let otp_file = store.root.join(OTP_DEFUALT_FILE);
+        let recipients = store.recipients()?;
+        crate::crypto::context(&crate::CONFIG)?
+            .encrypt_file(
+                &recipients,
+                Plaintext::from(
+                    fs::read(store.root.join(OTP_DEFUALT_FILE)).map_err(OtpError::ReadFile)?,
+                ),
+                &otp_file,
+            )
+            .map_err(OtpError::Encrypt)?;
+
+        Ok(())
+    }
+
+    /// Get the OTP account information
     pub fn get(&self, sec_path: &str) -> Option<&Account> {
         self.0.get(sec_path)
     }
 
+    /// List the OTP account names and OTP code values
     pub fn list(&self) -> &BTreeMap<String, Account> {
         &self.0
     }
 
+    /// Return an iterator of OTP names
+    pub fn keys(&self) -> impl Iterator<Item = &String> {
+        self.0.keys()
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.keys().len()
+    }
+
+    /// Add an account to the OTP hash
     pub fn add(&mut self, account: Account) {
         self.0.insert(account.name.clone(), account);
     }
 
+    /// Delete an account from the OTP hash
     pub fn delete(&mut self, sec_path: String) -> Option<Account> {
         self.0.remove(&sec_path)
     }
 
+    /// Save the modified OTP hash
     pub fn save(&self, store: &Store) -> Result<()> {
         fs::write(
             store.root.join(OTP_DEFUALT_FILE),

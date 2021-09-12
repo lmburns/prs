@@ -1,6 +1,7 @@
 pub(crate) mod add;
 pub(crate) mod list;
 pub(crate) mod remove;
+pub(crate) mod view;
 
 use clap::{App, AppSettings};
 
@@ -19,6 +20,7 @@ impl CmdOtp {
             .subcommand(add::CmdAdd::build())
             .subcommand(list::CmdList::build())
             .subcommand(remove::CmdRemove::build())
+            .subcommand(view::CmdView::build())
             .arg(ArgStore::build())
     }
 }

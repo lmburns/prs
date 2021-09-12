@@ -75,7 +75,11 @@ impl<'a> List<'a> {
                 Err(err) => eprintln!("{}", err),
             }
         });
-        tracing::trace!("list otps: {:#?}", otp_file.list());
+        OtpFile::close(&store)?;
+
+        // Finalize tomb
+        #[cfg(all(feature = "tomb", target_os = "linux"))]
+        tomb::finalize_tomb(&mut tomb, &matcher_main, false).map_err(Err::Tomb)?;
 
         Ok(())
     }

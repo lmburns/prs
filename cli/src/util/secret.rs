@@ -6,7 +6,7 @@ use prs_lib::{Plaintext, Secret, Store};
 const SECRET_ALIAS_DEPTH: u32 = 30;
 
 /// Print the given plaintext to stdout.
-pub(crate) fn print(plaintext: Plaintext) -> Result<(), std::io::Error> {
+pub(crate) fn print(plaintext: &Plaintext) -> Result<(), std::io::Error> {
     let mut stdout = std::io::stdout();
 
     stdout.write_all(plaintext.unsecure_ref())?;
@@ -18,17 +18,18 @@ pub(crate) fn print(plaintext: Plaintext) -> Result<(), std::io::Error> {
         }
     }
 
-    let _ = stdout.flush();
+    let _drop = stdout.flush();
     Ok(())
 }
 
 /// Show full secret name if query was partial.
 ///
-/// This notifies the user on what exact secret is selected when only part of the secret name is
-/// entered. This is useful for when a partial (short) query selects the wrong secret.
+/// This notifies the user on what exact secret is selected when only part of
+/// the secret name is entered. This is useful for when a partial (short) query
+/// selects the wrong secret.
 pub(crate) fn print_name(query: Option<String>, secret: &Secret, store: &Store, quiet: bool) {
     // If quiet or query matches exact name, do not print it
-    if quiet || query.map(|q| secret.name.eq(&q)).unwrap_or(false) {
+    if quiet || query.map_or(false, |q| secret.name.eq(&q)) {
         return;
     }
 
@@ -42,8 +43,8 @@ pub(crate) fn print_name(query: Option<String>, secret: &Secret, store: &Store, 
 
 /// Resolve secret that is aliased.
 ///
-/// This find the target alias if the given secret is an alias. This uses recursive searching.
-/// If the secret is not an alias, `None` is returned.
+/// This find the target alias if the given secret is an alias. This uses
+/// recursive searching. If the secret is not an alias, `None` is returned.
 fn resolve_alias(secret: &Secret, store: &Store) -> Option<Secret> {
     fn f(secret: &Secret, store: &Store, depth: u32) -> Option<Secret> {
         assert!(

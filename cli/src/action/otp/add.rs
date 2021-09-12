@@ -52,7 +52,6 @@ impl<'a> Add<'a> {
         );
 
         let sync = store.sync();
-        // let name = matcher_add.name();
 
         // Prepare tomb
         #[cfg(all(feature = "tomb", target_os = "linux"))]
@@ -61,12 +60,13 @@ impl<'a> Add<'a> {
         // Prepare sync
         sync::ensure_ready(&sync, matcher_add.allow_dirty());
         if !matcher_add.no_sync() {
+            println!(" preparing sync: ");
             sync.prepare()?;
         }
 
         let mut context = crate::crypto::context(&matcher_main)?;
-        // let mut plaintext = context.decrypt_file(&secret.path).map_err(Err::Read)?;
 
+        // TODO: remove account option if not used
         // let secret = if let Some(name) = matcher_add.name() {
         //     let path = store
         //         .normalize_secret_path(name, None, true)
@@ -78,14 +78,9 @@ impl<'a> Add<'a> {
             select::store_select_secret(&store, matcher_add.query()).ok_or(Err::NoneSelected)?;
         // };
 
-        println!("name: {:?}", secret);
         tracing::debug!(secret = ?secret);
 
         // TODO: allow adding otp to other files
-        // TODO: allow alternate paths other than default store
-
-        // // let mut plaintext = Plaintext::empty();
-        // // plaintext = matcher_add.key().into();
 
         let acc = Account {
             name:          secret.name.clone(),
@@ -103,31 +98,18 @@ impl<'a> Add<'a> {
         } else {
             otp_file.add(acc.clone());
             match otp_file.save(&store) {
-                Ok(_) => println!("OTP account successfully created"),
+                Ok(_) => println!(),
                 Err(err) => error::print_error(err),
             }
         }
         tracing::debug!(otp_file = ?otp_file);
 
-        // Confirm if empty secret should be stored
-        // if !matcher_main.force()
-        //     && !matcher_add.empty()
-        //     && plaintext.is_empty()
-        //     && !cli::prompt_yes("Secret is empty. Add?", Some(true), &matcher_main)
-        // {
-        //     error::quit();
-        // }
-
-        // // Encrypt and write changed plaintext
-        // // TODO: select proper recipients (use from current file?)
-        // let recipients = store.recipients()?;
-        // crate::crypto::context(&matcher_main)?
-        //     .encrypt_file(&recipients, plaintext, &path)
-        //     .map_err(Err::Write)?;
+        // Encrypt and write changed plaintext
+        OtpFile::close(&store)?;
 
         // Finalize sync
         if !matcher_add.no_sync() {
-            sync.finalize(format!("Add secret to {}", secret.name))?;
+            sync.finalize(format!("Added OTP account: {}", secret.name))?;
         }
 
         // Finalize tomb
@@ -135,7 +117,7 @@ impl<'a> Add<'a> {
         tomb::finalize_tomb(&mut tomb, &matcher_main, true).map_err(Err::Tomb)?;
 
         if !matcher_main.quiet() {
-            eprintln!("Secret added");
+            eprintln!("Successfully added OTP account");
         }
 
         Ok(())
@@ -162,4 +144,7 @@ pub(crate) enum Err {
 
     #[error("no secret selected")]
     NoneSelected,
+
+    #[error("failed to read from file")]
+    ReadFile(#[source] std::io::Error),
 }

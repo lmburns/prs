@@ -1,11 +1,10 @@
-#![allow(unused)]
 pub(crate) mod add;
 pub(crate) mod list;
 pub(crate) mod remove;
+pub(crate) mod view;
 
 use clap::ArgMatches;
 use crate::cmd::arg::{ArgStore, CmdArgOption};
-use std::fmt;
 use super::Matcher;
 
 /// The recipients matcher.
@@ -31,7 +30,12 @@ impl<'a: 'b, 'b> OtpMatcher<'a> {
         remove::RemoveMatcher::with(self.root)
     }
 
-    /// The store.
+    /// Get the options for viewing OTP codes
+    pub(crate) fn cmd_view(&'a self) -> Option<view::ViewMatcher> {
+        view::ViewMatcher::with(self.root)
+    }
+
+    /// The store
     pub(crate) fn store(&self) -> String {
         ArgStore::value(self.matches)
     }

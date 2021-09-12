@@ -1,6 +1,10 @@
+#![allow(unused)]
 use std::{borrow::Cow, path::PathBuf, sync::Arc};
 
-use prs_lib::{Key, Secret};
+use prs_lib::{
+    otp::{Account, OtpFile},
+    Key, Secret,
+};
 use skim::{
     prelude::{SkimItemReceiver, SkimItemSender, SkimOptionsBuilder},
     AnsiString, DisplayContext, Skim, SkimItem,
@@ -99,11 +103,7 @@ fn skim_select(items: SkimItemReceiver, prompt: &str) -> Option<String> {
     }
 
     // Get the first selected, and return
-    output
-        .selected_items
-        .iter()
-        .next()
-        .map(|i| i.output().to_string())
+    output.selected_items.get(0).map(|i| i.output().to_string())
 }
 
 /// Wrapped store secret item for skim.
@@ -145,6 +145,41 @@ pub(crate) fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
     Some(secrets.iter().find(|e| e.path == path).unwrap())
 }
 
+/// Wrapper for selecting OtpFile with `skim`
+pub(crate) struct SkimOtp(String);
+
+impl From<String> for SkimOtp {
+    fn from(s: String) -> Self {
+        Self(s)
+    }
+}
+
+impl SkimItem for SkimOtp {
+    fn display(&self, _: DisplayContext) -> AnsiString {
+        self.0.to_string().into()
+    }
+
+    fn text(&self) -> Cow<str> {
+        self.0.to_string().into()
+    }
+
+    fn output(&self) -> Cow<str> {
+        self.0.clone().into()
+    }
+}
+
+/// Select an OTP account using the `skim` library
+pub(crate) fn select_otp(otp: &OtpFile) -> Option<&Account> {
+    // Return if theres just one to choose
+    if otp.len() == 1 {
+        return otp.get(otp.keys().collect::<Vec<_>>()[0]);
+    }
+
+    let items = skim_otp_items(otp);
+    let selected = skim_select(items, "Select otp")?;
+    Some(otp.get(&selected).unwrap())
+}
+
 /// Select key.
 pub(crate) fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
     // Let user select secret
@@ -156,6 +191,15 @@ pub(crate) fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option
         keys.iter()
             .find(|e| e.fingerprint(false) == selected)
             .unwrap(),
+    )
+}
+
+/// Select OTP items using `skim`
+fn skim_otp_items(otp: &OtpFile) -> SkimItemReceiver {
+    skim_items(
+        otp.keys()
+            .map(|g| g.clone().into())
+            .collect::<Vec<SkimOtp>>(),
     )
 }
 
@@ -185,9 +229,9 @@ fn skim_items<I: SkimItem>(items: Vec<I>) -> SkimItemReceiver {
     let (tx_item, rx_item): (SkimItemSender, SkimItemReceiver) =
         skim::prelude::bounded(items.len());
 
-    items.into_iter().for_each(|g| {
-        let _ = tx_item.send(Arc::new(g));
-    });
+    for g in items.into_iter() {
+        let _drop = tx_item.send(Arc::new(g));
+    }
 
     rx_item
 }

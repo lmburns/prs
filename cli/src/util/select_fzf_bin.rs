@@ -5,7 +5,10 @@ use std::{
     process::{Command, Stdio},
 };
 
-use prs_lib::{Key, Secret};
+use prs_lib::{
+    otp::{Account, OtpFile},
+    Key, Secret,
+};
 
 /// Binary name.
 #[cfg(not(windows))]
@@ -21,7 +24,7 @@ pub(crate) fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
     }
 
     let map: HashMap<_, _> = secrets
-        .into_iter()
+        .iter()
         .map(|secret| (secret.name.clone(), secret))
         .collect();
     let items: Vec<_> = map.keys().collect();
@@ -32,17 +35,28 @@ pub(crate) fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
 
 /// Select key.
 pub(crate) fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
-    let map: HashMap<_, _> = keys.into_iter().map(|key| (key.to_string(), key)).collect();
+    let map: HashMap<_, _> = keys.iter().map(|key| (key.to_string(), key)).collect();
     let items: Vec<_> = map.keys().collect();
     select_item(prompt.unwrap_or("Select key"), &items)
         .as_ref()
         .map(|item| map[item])
 }
 
+/// Select otp
+pub(crate) fn select_otp(otp: &OtpFile) -> Option<&Account> {
+    if otp.len() == 1 {
+        return otp.get(otp.keys().collect::<Vec<_>>()[0]);
+    }
+
+    select_item("Select otp", &otp.keys().collect::<Vec<_>>())
+        .as_ref()
+        .map(|key| otp.get(key).unwrap())
+}
+
 /// Interactively select one of the given items.
 fn select_item<'a, S: AsRef<str>>(prompt: &'a str, items: &'a [S]) -> Option<String> {
     // Build sorted list of string references as items
-    let mut items = items.into_iter().map(|i| i.as_ref()).collect::<Vec<_>>();
+    let mut items = items.iter().map(AsRef::as_ref).collect::<Vec<_>>();
     items.sort_unstable();
 
     // Spawn fzf
@@ -78,7 +92,7 @@ fn select_item<'a, S: AsRef<str>>(prompt: &'a str, items: &'a [S]) -> Option<Str
 
     // Get selected item, assert validity
     let stdout = std::str::from_utf8(&output.stdout).unwrap();
-    let stdout = stdout.strip_suffix("\n").unwrap_or(stdout);
+    let stdout = stdout.strip_suffix('\n').unwrap_or(stdout);
     assert!(items.contains(&stdout));
 
     Some(stdout.into())

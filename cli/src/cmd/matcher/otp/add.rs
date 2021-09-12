@@ -1,12 +1,9 @@
 use super::Matcher;
-use crate::cmd::arg::{
-    ArgAllowDirty, ArgNoSync, ArgProperty, ArgQuery, ArgStore, CmdArgFlag, CmdArgOption,
-};
+use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, CmdArgFlag, CmdArgOption};
 use clap::ArgMatches;
 use prs_lib::otp::HashFunction;
-// use std::{fmt, hash::Hash};
 
-/// The one time password command matcher
+/// The one time password add command matcher
 #[derive(Debug)]
 pub(crate) struct AddMatcher<'a> {
     matches: &'a ArgMatches,
@@ -18,7 +15,10 @@ impl<'a: 'b, 'b> AddMatcher<'a> {
     pub(crate) fn query(&self) -> Option<String> {
         ArgQuery::value(self.matches)
     }
+
+    // TODO: Implement an option to not link an OTP to an existing `Secret`?
     /// OTP account name
+    #[allow(dead_code)]
     pub(crate) fn name(&self) -> Option<&str> {
         self.matches.value_of("ACCOUNT")
     }
@@ -39,6 +39,7 @@ impl<'a: 'b, 'b> AddMatcher<'a> {
     }
 
     /// Check what hashing algorithm to use
+    #[allow(dead_code)]
     pub(crate) fn algorithm(&self) -> HashFunction {
         self.matches
             .value_of("algorithm")
@@ -58,11 +59,6 @@ impl<'a: 'b, 'b> AddMatcher<'a> {
     /// Whether to not sync
     pub(crate) fn no_sync(&self) -> bool {
         ArgNoSync::is_present(self.matches)
-    }
-
-    /// The selected property.
-    pub(crate) fn property(&self) -> Option<&str> {
-        ArgProperty::value(self.matches)
     }
 }
 

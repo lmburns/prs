@@ -106,16 +106,16 @@ fn remove_confirm(
 
     // Confirm removal
     ignore.push(secret.path.clone());
-    if !matcher_main.force() && !cli::prompt_yes(&prompt, Some(true), &matcher_main) {
+    if !matcher_main.force() && !cli::prompt_yes(prompt, Some(true), matcher_main) {
         return Ok(false);
     }
 
     // Ask to remove alias target
     if is_alias {
-        match secret.alias_target(&store) {
+        match secret.alias_target(store) {
             Ok(secret) => {
                 // TODO: is this error okay?
-                if let Err(err) = remove_confirm(&store, &secret, &matcher_main, ignore) {
+                if let Err(err) = remove_confirm(store, &secret, matcher_main, ignore) {
                     error::print_error(err.context("failed to remove alias target, ignoring"));
                 }
             }
@@ -125,7 +125,7 @@ fn remove_confirm(
 
     // Ask to remove aliases targeting this secret
     #[cfg(feature = "alias")]
-    for secret in find_symlinks_to(&store, &secret) {
+    for secret in find_symlinks_to(store, secret) {
         if let Err(err) = remove_confirm(store, &secret, matcher_main, ignore) {
             error::print_error(err.context("failed to remove alias, ignoring"));
         }
@@ -134,8 +134,8 @@ fn remove_confirm(
     // Remove secret, remove directories that become empty
     fs::remove_file(&secret.path)
         .map(|_| ())
-        .map_err(|err| Err::Remove(err))?;
-    remove_empty_secret_dir(&secret);
+        .map_err(Err::Remove)?;
+    remove_empty_secret_dir(secret);
 
     Ok(true)
 }

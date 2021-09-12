@@ -10,14 +10,9 @@ pub(crate) struct RemoveMatcher<'a> {
 
 #[allow(single_use_lifetimes)]
 impl<'a: 'b, 'b> RemoveMatcher<'a> {
-    /// OTP action to remove
-    pub(crate) fn remove(&self) -> bool {
-        self.matches.is_present("remove")
-    }
-
     /// OTP account name to remove
-    pub(crate) fn account(&self) -> &str {
-        self.matches.value_of("ACCOUNT").unwrap()
+    pub(crate) fn account(&self) -> Option<&str> {
+        self.matches.value_of("ACCOUNT")
     }
 
     /// Whether to allow a dirty repository for syncing

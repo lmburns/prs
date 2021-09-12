@@ -140,6 +140,7 @@ impl Plaintext {
             .ok_or_else(|| Err::Property(property.to_lowercase()).into())
     }
 
+    // TODO: use
     /// Return OTP code
     pub fn otp(&self) -> Result<Plaintext> {
         self.unsecure_to_str()

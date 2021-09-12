@@ -502,7 +502,7 @@ where
                                     // use the default value if set
                                     (_, Some(default)) => default,
                                     // leave the variable as it is if the environment is empty
-                                    (_, None) => &input_str[..closing_brace_idx + 1],
+                                    (_, None) => &input_str[..=closing_brace_idx],
                                 };
 
                                 result.push_str(value);
@@ -680,11 +680,11 @@ where
     HD: FnOnce() -> Option<P>,
 {
     let input_str = input.as_ref();
-    if input_str.starts_with("~") {
+    if input_str.starts_with('~') {
         let input_after_tilde = &input_str[1..];
         if input_after_tilde.is_empty()
-            || input_after_tilde.starts_with("/")
-            || (cfg!(windows) && input_after_tilde.starts_with("\\"))
+            || input_after_tilde.starts_with('/')
+            || (cfg!(windows) && input_after_tilde.starts_with('\\'))
         {
             if let Some(hd) = home_dir() {
                 let result = format!("{}{}", hd.as_ref().display(), input_after_tilde);

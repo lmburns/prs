@@ -1,6 +1,7 @@
 pub(crate) mod add;
 pub(crate) mod list;
 pub(crate) mod remove;
+pub(crate) mod view;
 
 use anyhow::Result;
 use clap::ArgMatches;
@@ -33,6 +34,10 @@ impl<'a> Otp<'a> {
 
         if matcher_otp.cmd_remove().is_some() {
             return remove::Remove::new(self.cmd_matches).invoke();
+        }
+
+        if matcher_otp.cmd_view().is_some() {
+            return view::View::new(self.cmd_matches).invoke();
         }
 
         Ok(())

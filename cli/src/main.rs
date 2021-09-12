@@ -47,6 +47,7 @@
 #![allow(
     clippy::similar_names,
     clippy::struct_excessive_bools,
+    clippy::too_many_lines,
 //     clippy::shadow_reuse,
 //     clippy::too_many_lines,
 //     clippy::doc_markdown,
@@ -59,7 +60,7 @@ mod crypto;
 mod util;
 mod vendor;
 
-use std::{error, io, sync::Once};
+use std::{error, io, env};
 
 use anyhow::Result;
 use clap::{crate_description, crate_name, crate_version};
@@ -84,9 +85,6 @@ use tracing_subscriber::{
     },
     EnvFilter, FmtSubscriber,
 };
-
-/// Call initialization once
-static ONCE: Once = Once::new();
 
 /// Tracing environment variable
 const LOG_ENV: &str = "PRS_LOG";
@@ -121,8 +119,12 @@ fn main() {
     #[cfg(windows)]
     colored::control::set_override(false);
 
+    if env::var_os("NO_COLOR").is_some() {
+        colored::control::set_override(false);
+    }
+
     let subscriber = get_subscriber();
-    ONCE.call_once(|| match std::env::var_os(LOG_ENV) {
+    match env::var_os(LOG_ENV) {
         Some(_) => match EnvFilter::try_from_env(LOG_ENV) {
             Err(err) => error_and_exit(err),
             Ok(filter) => subscriber
@@ -131,7 +133,7 @@ fn main() {
                 .init(),
         },
         None => subscriber.init(),
-    });
+    };
 
     // Parse CLI arguments
     let cmd_handler = Handler::parse();
@@ -228,7 +230,6 @@ fn invoke_action(handler: &Handler) -> Result<()> {
 
     // Get the main matcher
     let matcher_main = MainMatcher::with(handler.matches()).unwrap();
-    println!("MAIN: {:#?}", matcher_main);
     if !matcher_main.quiet() {
         print_main_info(&matcher_main);
     }

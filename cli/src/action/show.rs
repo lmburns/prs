@@ -74,11 +74,12 @@ impl<'a> Show<'a> {
             )?;
         }
 
-        secret::print(plaintext).map_err(Err::Print)?;
+        secret::print(&plaintext).map_err(Err::Print)?;
 
         // Clear after timeout
         if let Some(timeout) = matcher_show.timeout() {
             let timeout = timeout?;
+            #[allow(clippy::cast_possible_truncation)]
             let mut lines = lines as u16 + 1;
 
             if matcher_main.verbose() {

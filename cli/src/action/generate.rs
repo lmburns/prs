@@ -157,7 +157,7 @@ impl<'a> Generate<'a> {
 
         // Show in stdout
         if matcher_generate.show() {
-            secret::print(plaintext).map_err(Err::Print)?;
+            secret::print(&plaintext).map_err(Err::Print)?;
         }
 
         // Finalize store sync if we saved the secret

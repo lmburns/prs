@@ -1,4 +1,8 @@
-use prs_lib::{store::FindSecret, Key, Secret, Store};
+use prs_lib::{
+    otp::{Account, OtpFile},
+    store::FindSecret,
+    Key, Secret, Store,
+};
 
 /// Find and select a secret in the given store.
 ///
@@ -29,7 +33,7 @@ pub(crate) fn store_select_secret(store: &Store, query: Option<String>) -> Optio
                 return super::select_fzf_bin::select_secret(&secrets).cloned();
             }
             super::select_basic::select_secret(&secrets).cloned()
-        }
+        },
     }
 }
 
@@ -50,4 +54,22 @@ pub(crate) fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option
         return super::select_fzf_bin::select_key(keys, prompt);
     }
     super::select_basic::select_key(keys, prompt)
+}
+
+/// Select otp
+#[allow(unreachable_code)]
+pub(crate) fn select_otp(otp: &OtpFile) -> Option<&Account> {
+    #[cfg(all(feature = "select-skim", unix))]
+    {
+        return super::select_skim::select_otp(otp);
+    }
+    #[cfg(feature = "select-skim-bin")]
+    {
+        return super::select_skim_bin::select_otp(otp);
+    }
+    #[cfg(feature = "select-fzf-bin")]
+    {
+        return super::select_fzf_bin::select_otp(otp);
+    }
+    super::select_basic::select_otp(otp)
 }

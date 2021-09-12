@@ -119,6 +119,7 @@ impl fmt::Display for Key {
 ///
 /// Errors if no compatible crypto context is available for the selected protocol because no
 /// backend is providing it. Also errors if creating the context fails.
+#[allow(unreachable_code)]
 pub fn context(config: &Config) -> Result<Context, Err> {
     // Select proper crypto backend
     match config.proto {
@@ -135,7 +136,6 @@ pub fn context(config: &Config) -> Result<Context, Err> {
         }
     }
 
-    #[allow(unreachable_code)]
     Err(Err::Unsupported(config.proto))
 }
 

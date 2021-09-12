@@ -11,11 +11,14 @@
 # prs
 
 # TODO:
-* `pass-vera`
-* Change listing to colors
-* Support `TOTP` codes
+* [`pass-vera`](https://github.com/lmburns/pass-vera.git) implementation
 * Support `pwned`
-* Add attributes from CLI?
+* Add attributes from CLI similar to [`knox`](https://github.com/apognu/knox.git)
+* Add an otp attribute to file if it has one
+  * `show`, `remove`
+
+## Fork
+* Support `TOTP` codes
 
 > A secure, fast & convenient password manager CLI using GPG and git to sync.
 

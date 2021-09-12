@@ -1,9 +1,14 @@
-use std::collections::HashMap;
-use std::io::Write;
-use std::process::{Command, Stdio};
-use std::env;
+use std::{
+    collections::HashMap,
+    env,
+    io::Write,
+    process::{Command, Stdio},
+};
 
-use prs_lib::{Key, Secret};
+use prs_lib::{
+    otp::{Account, OtpFile},
+    Key, Secret,
+};
 
 /// Binary name.
 #[cfg(not(windows))]
@@ -12,7 +17,7 @@ const BIN_NAME: &str = "sk";
 const BIN_NAME: &str = "sk.exe";
 
 /// Select secret.
-pub fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
+pub(crate) fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
     // Return if theres just one to choose
     if secrets.len() == 1 {
         return secrets.get(0);
@@ -29,12 +34,23 @@ pub fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
 }
 
 /// Select key.
-pub fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
+pub(crate) fn select_key<'a>(keys: &'a [Key], prompt: Option<&'a str>) -> Option<&'a Key> {
     let map: HashMap<_, _> = keys.into_iter().map(|key| (key.to_string(), key)).collect();
     let items: Vec<_> = map.keys().collect();
     select_item(prompt.unwrap_or("Select key"), &items)
         .as_ref()
         .map(|item| map[item])
+}
+
+/// Select otp
+pub(crate) fn select_otp(otp: &OtpFile) -> Option<&Account> {
+    if otp.len() == 1 {
+        return otp.get(otp.keys().collect::<Vec<_>>()[0]);
+    }
+
+    select_item("Select otp", &otp.keys().collect::<Vec<_>>())
+        .as_ref()
+        .map(|key| otp.get(key).unwrap())
 }
 
 /// Interactively select one of the given items.
@@ -58,9 +74,7 @@ fn select_item<'a, S: AsRef<str>>(prompt: &'a str, items: &'a [S]) -> Option<Str
         command.env("SKIM_DEFAULT_OPTIONS", skim_opts);
     }
 
-    let mut child = command
-        .spawn()
-        .expect("failed to spawn skim");
+    let mut child = command.spawn().expect("failed to spawn skim");
 
     // Communicate list of items to skim
     let data = items.join("\n");
