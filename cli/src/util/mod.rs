@@ -13,7 +13,7 @@ pub(crate) mod select_fzf_bin;
 #[cfg(all(feature = "select-skim", unix))]
 pub(crate) mod select_skim;
 #[cfg(feature = "select-skim-bin")]
-pub mod select_skim_bin;
+pub(crate) mod select_skim_bin;
 pub(crate) mod stdin;
 pub(crate) mod style;
 pub(crate) mod sync;
