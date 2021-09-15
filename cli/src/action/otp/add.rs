@@ -1,4 +1,3 @@
-#![allow(unused)]
 use anyhow::Result;
 use clap::ArgMatches;
 use std::io;
@@ -10,13 +9,15 @@ use crate::{
         otp::{add::AddMatcher, OtpMatcher},
         Matcher,
     },
-    util::{cli, error, secret, select, sync},
+    util::{error, select, sync},
 };
 
 use prs_lib::{
-    crypto::prelude::*,
-    otp::{Account, HashFunction, OneTimePassword, OtpFile},
-    Plaintext, Secret, Store, OTP_DEFUALT_FILE,
+    otp::{
+        uri_algorithm, uri_period, uri_secret, uri_type, AccountBuilder,
+        OtpFile,
+    },
+    Store,
 };
 
 #[cfg(all(feature = "tomb", target_os = "linux"))]
@@ -64,8 +65,6 @@ impl<'a> Add<'a> {
             sync.prepare()?;
         }
 
-        let mut context = crate::crypto::context(&matcher_main)?;
-
         // TODO: remove account option if not used
         // let secret = if let Some(name) = matcher_add.name() {
         //     let path = store
@@ -80,16 +79,32 @@ impl<'a> Add<'a> {
 
         tracing::debug!(secret = ?secret);
 
-        // TODO: allow adding otp to other files
+        let acc = if let Some(uri) = matcher_add.uri() {
+            AccountBuilder::default()
+                .name(secret.name.clone())
+                .path(secret.path.clone())
+                .key(uri_secret(uri)?)
+                .uri(Some(uri.to_owned()))
+                .totp(uri_type(uri)?)
+                .hash_function(uri_algorithm(uri)?)
+                .counter(if uri_type(uri)? { None } else { Some(0) })
+                .period(uri_period(uri)?)
+                .build()
+        } else {
+            AccountBuilder::default()
+                .name(secret.name.clone())
+                .path(secret.path.clone())
+                .key(matcher_add.key())
+                .uri(None)
+                .totp(!matcher_add.hotp())
+                .hash_function(matcher_add.algorithm())
+                .counter(if matcher_add.totp() { None } else { Some(0) })
+                .period(matcher_add.period())
+                .build()
+        }
+        .unwrap();
 
-        let acc = Account {
-            name:          secret.name.clone(),
-            path:          secret.path.clone(),
-            key:           matcher_add.key(),
-            totp:          !matcher_add.hotp(),
-            hash_function: matcher_add.algorithm_str().to_owned(),
-            counter:       if matcher_add.totp() { None } else { Some(0) },
-        };
+        // TODO: allow adding otp to other files
         tracing::debug!(account = ?acc);
 
         let mut otp_file = OtpFile::new(&store)?;
@@ -99,13 +114,10 @@ impl<'a> Add<'a> {
             otp_file.add(acc.clone());
             match otp_file.save(&store) {
                 Ok(_) => println!(),
-                Err(err) => error::print_error(err),
+                Err(err) => error::print_error(&err),
             }
         }
         tracing::debug!(otp_file = ?otp_file);
-
-        // Encrypt and write changed plaintext
-        OtpFile::close(&store)?;
 
         // Finalize sync
         if !matcher_add.no_sync() {
@@ -136,15 +148,6 @@ pub(crate) enum Err {
     #[error("failed to prepare password store tomb for usage")]
     Tomb(#[source] anyhow::Error),
 
-    #[error("failed to normalize destination path")]
-    NormalizePath(#[source] anyhow::Error),
-
-    #[error("failed to write changed secret")]
-    Write(#[source] anyhow::Error),
-
     #[error("no secret selected")]
     NoneSelected,
-
-    #[error("failed to read from file")]
-    ReadFile(#[source] std::io::Error),
 }

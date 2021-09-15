@@ -8,6 +8,7 @@ pub(crate) mod duplicate;
 pub(crate) mod edit;
 pub(crate) mod generate;
 pub(crate) mod git;
+pub(crate) mod grep;
 pub(crate) mod housekeeping;
 pub(crate) mod init;
 pub(crate) mod internal;
@@ -36,6 +37,7 @@ pub(crate) use self::{
     edit::CmdEdit,
     generate::CmdGenerate,
     git::CmdGit,
+    grep::CmdGrep,
     housekeeping::CmdHousekeeping,
     init::CmdInit,
     internal::CmdInternal,

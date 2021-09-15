@@ -23,9 +23,27 @@ impl<'a: 'b, 'b> AddMatcher<'a> {
         self.matches.value_of("ACCOUNT")
     }
 
-    /// Secret key of the OTP
+    /// Secret key of the OTP (will panic if -k isn't used)
     pub(crate) fn key(&self) -> String {
         self.matches.value_of("KEY").unwrap().to_uppercase()
+    }
+
+    /// URI formatted secret
+    pub(crate) fn uri(&self) -> Option<&str> {
+        self.matches.value_of("uri")
+    }
+
+    /// Has URI formatted secret
+    #[allow(dead_code)]
+    pub(crate) fn has_uri(&self) -> bool {
+        self.matches.is_present("uri")
+    }
+
+    /// Get period
+    pub(crate) fn period(&self) -> u64 {
+        self.matches
+            .value_of("period")
+            .map_or(30_u64, |p| p.parse::<u64>().unwrap())
     }
 
     /// Check whether to use TOTP code
@@ -39,7 +57,6 @@ impl<'a: 'b, 'b> AddMatcher<'a> {
     }
 
     /// Check what hashing algorithm to use
-    #[allow(dead_code)]
     pub(crate) fn algorithm(&self) -> HashFunction {
         self.matches
             .value_of("algorithm")
@@ -47,8 +64,9 @@ impl<'a: 'b, 'b> AddMatcher<'a> {
     }
 
     /// Check what hashing algorithm to as a str
+    #[allow(dead_code)]
     pub(crate) fn algorithm_str(&self) -> &str {
-        self.matches.value_of("algorithm").unwrap_or("SHA1")
+        self.matches.value_of("algorithm").unwrap_or("Sha1")
     }
 
     /// Whether to allow a dirty repository for syncing

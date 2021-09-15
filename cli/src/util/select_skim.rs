@@ -1,4 +1,3 @@
-#![allow(unused)]
 use std::{borrow::Cow, path::PathBuf, sync::Arc};
 
 use prs_lib::{
@@ -145,7 +144,7 @@ pub(crate) fn select_secret(secrets: &[Secret]) -> Option<&Secret> {
     Some(secrets.iter().find(|e| e.path == path).unwrap())
 }
 
-/// Wrapper for selecting OtpFile with `skim`
+/// Wrapper for selecting `OtpFile` with `skim`
 pub(crate) struct SkimOtp(String);
 
 impl From<String> for SkimOtp {
@@ -229,7 +228,7 @@ fn skim_items<I: SkimItem>(items: Vec<I>) -> SkimItemReceiver {
     let (tx_item, rx_item): (SkimItemSender, SkimItemReceiver) =
         skim::prelude::bounded(items.len());
 
-    for g in items.into_iter() {
+    for g in items {
         let _drop = tx_item.send(Arc::new(g));
     }
 

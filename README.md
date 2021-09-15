@@ -13,7 +13,10 @@
 # TODO:
 * [`pass-vera`](https://github.com/lmburns/pass-vera.git) implementation
 * Support `pwned`
+* Support `grep`
 * Add attributes from CLI similar to [`knox`](https://github.com/apognu/knox.git)
+* Add QRCode for `otp`
+* Parse URI
 * Add an otp attribute to file if it has one
   * `show`, `remove`
 

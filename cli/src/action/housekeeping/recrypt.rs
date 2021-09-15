@@ -101,7 +101,7 @@ pub(crate) fn recrypt(store: &Store, secrets: &[Secret], matcher_main: &MainMatc
             }
             Err(err) => {
                 eprintln!("[{}/{}] Re-encrypting failed: {}", i + 1, len, secret.name);
-                error::print_error(err.context("recrypting failed"));
+                error::print_error(&err.context("recrypting failed"));
                 failed.push(secret);
             }
         }

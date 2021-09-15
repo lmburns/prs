@@ -1,8 +1,6 @@
-#![allow(unused)]
-use clap::ArgMatches;
-use colored::Colorize;
-use std::{fs, io, path::Path, thread, time::Duration};
 use anyhow::Result;
+use clap::ArgMatches;
+use std::{thread, time::Duration};
 use thiserror::Error;
 
 use crate::{
@@ -11,12 +9,12 @@ use crate::{
         otp::{view::ViewMatcher, OtpMatcher},
         Matcher,
     },
-    util::{cli, clipboard, edit, error, select, sync},
+    util::{clipboard, error, select},
 };
 
 use prs_lib::{
-    otp::{Account, HashFunction, OneTimePassword, OtpFile},
-    Plaintext, Secret, Store,
+    otp::{parse_base32, uri_digits, OneTimePasswordBuilder, OtpFile},
+    Store,
 };
 
 #[cfg(all(feature = "tomb", target_os = "linux"))]
@@ -53,7 +51,7 @@ impl<'a> View<'a> {
         #[cfg(all(feature = "tomb", target_os = "linux"))]
         tomb::prepare_tomb(&mut tomb, &matcher_main).map_err(Err::Tomb)?;
 
-        let mut otp_file = OtpFile::new(&store)?;
+        let otp_file = OtpFile::new(&store)?;
         let account = if let Some(acc) = matcher_view.account() {
             acc.to_string()
         } else {
@@ -63,15 +61,18 @@ impl<'a> View<'a> {
 
         match otp_file.get(&account) {
             Some(acc) => {
-                match OneTimePassword::new(
-                    &acc.key,
-                    acc.totp,
-                    &acc.hash_function,
-                    acc.counter,
-                    Some(matcher_view.length()),
-                ) {
+                match OneTimePasswordBuilder::default()
+                    .key(parse_base32(&acc.key).unwrap())
+                    .totp(acc.totp)
+                    .hash_function(acc.hash_function)
+                    .counter(acc.counter.unwrap_or_default())
+                    .output_len(acc.uri.clone().map_or(matcher_view.length(), |ref u| uri_digits(u).unwrap_or_default()))
+                    .period(acc.period)
+                    .raw_key(acc.key.to_string())
+                    .build()
+                {
                     Ok(otp) => {
-                        println!("{}", otp.generate().green().bold());
+                        otp.display_code();
 
                         // Copy to clipboard
                         #[cfg(feature = "clipboard")]
@@ -100,13 +101,11 @@ impl<'a> View<'a> {
                             eprint!("{}", ansi_escapes::EraseLines(lines));
                         }
                     },
-                    Err(err) => error::print_error(err),
+                    Err(err) => error::print_error(&err.into()),
                 }
             },
             None => error::print_error_msg(format!("Account: {} doesn't exist", account)),
         }
-
-        OtpFile::close(&store)?;
 
         Ok(())
     }

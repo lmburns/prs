@@ -14,7 +14,10 @@ use crate::{
 };
 
 use prs_lib::{
-    otp::{Account, HashFunction, OneTimePassword, OtpFile},
+    otp::{
+        parse_base32, uri_digits, Account, HashFunction, OneTimePassword, OneTimePasswordBuilder,
+        OtpFile,
+    },
     Plaintext, Secret, Store,
 };
 
@@ -57,25 +60,28 @@ impl<'a> List<'a> {
         let mut otp_file = OtpFile::new(&store)?;
 
         otp_file.list().iter().for_each(|(name, acc)| {
-            match OneTimePassword::new(&acc.key, acc.totp, &acc.hash_function, acc.counter, None) {
-                Ok(otp) =>
-                    if acc.totp {
-                        println!(
-                            "Account: {}\nTOTP: {}",
-                            name.green().bold(),
-                            otp.generate().red().bold()
-                        );
-                    } else {
-                        println!(
-                            "Account: {}\nHOTP: {}",
-                            name.green().bold(),
-                            otp.generate().red().bold()
-                        );
-                    },
+            match OneTimePasswordBuilder::default()
+                .key(parse_base32(&acc.key).unwrap())
+                .totp(acc.totp)
+                .hash_function(acc.hash_function)
+                .counter(acc.counter.unwrap_or_default())
+                .period(acc.period)
+                .output_len(acc.uri.clone().map_or(6_usize, |ref u| uri_digits(u).unwrap_or_default()))
+                .raw_key(acc.key.to_string())
+                .build()
+            {
+                Ok(otp) => {
+                    println!(
+                        "{} account: {}",
+                        if otp.totp { "TOTP" } else { "HOTP" },
+                        name.blue().bold()
+                    );
+                    otp.display_code();
+                    println!();
+                },
                 Err(err) => eprintln!("{}", err),
             }
         });
-        OtpFile::close(&store)?;
 
         // Finalize tomb
         #[cfg(all(feature = "tomb", target_os = "linux"))]

@@ -1,15 +1,20 @@
-use crate::{crypto::IsContext, store::{Store, Secret}, types::Plaintext, OTP_DEFUALT_FILE};
-use anyhow::Result;
+use crate::{crypto::IsContext, store::Store, types::Plaintext, OTP_DEFUALT_FILE};
+use anyhow::{anyhow, Result};
+use colored::Colorize;
 use data_encoding::{DecodeError, BASE32_NOPAD};
+use derive_builder::Builder;
+use once_cell::sync::Lazy;
+use regex::Regex;
 use ring::hmac;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    convert::TryInto,
-    fmt, fs, io,
+    fs, io,
     path::PathBuf,
+    string::ToString,
     time::{SystemTime, SystemTimeError, UNIX_EPOCH},
 };
+use strum_macros::Display;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -45,28 +50,61 @@ pub enum OtpError {
 
     #[error("failed to read from file")]
     ReadFile(#[source] std::io::Error),
+
+    #[error("failed to get regex captures")]
+    RegexCaptures,
+
+    #[error("failed to get {0} captures")]
+    RegexCaptureName(String),
+
+    #[error("failed parse integer")]
+    ParseInt(#[source] std::num::ParseIntError),
+}
+
+static URI_RE: Lazy<Regex> = Lazy::new(|| {
+    Regex::new(
+        r"(?x)
+        otpauth://
+        (?P<type>totp|hotp)/                       # otp type
+        (?P<label>[^?\#]*)                         # label
+        (?:[?&]secret=(?P<secret>[^&]*))           # secret
+        (?:[?&]issuer=(?P<issuer>[^&\#]*))?        # issuer
+        (?:[?&]algorithm=(?P<algorithm>[^&\#]*))?  # algorithm
+        (?:[?&]digits=(?P<digits>[^&\#]*))?        # digits
+        (?:[?&]period=(?P<period>[^&\#]*))?        # period/interval
+    ",
+    )
+    .unwrap()
+});
+
+#[derive(Debug, Copy, Clone, PartialEq, Default, Display)]
+pub enum OTPType {
+    #[strum(serialize = "hotp")]
+    HOTP,
+    #[default]
+    #[strum(serialize = "totp")]
+    TOTP,
 }
 
 /// Available hashing algorithms
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone, Default, Display, PartialEq, Deserialize, Serialize)]
 pub enum HashFunction {
+    #[default]
+    #[strum(serialize = "sha1")]
+    #[serde(rename = "SHA1")]
     Sha1,
+    #[strum(serialize = "sha256")]
+    #[serde(rename = "SHA256")]
     Sha256,
+    #[strum(serialize = "sha384")]
+    #[serde(rename = "SHA384")]
     Sha384,
+    #[strum(serialize = "sha512")]
+    #[serde(rename = "SHA512")]
     Sha512,
 }
 
 impl HashFunction {
-    /// List all supported hashing functions
-    pub fn variants() -> &'static [HashFunction] {
-        &[
-            HashFunction::Sha1,
-            HashFunction::Sha256,
-            HashFunction::Sha384,
-            HashFunction::Sha512,
-        ]
-    }
-
     /// Convert `str` to variant (default is `SHA1`)
     pub fn from_str(hash: &str) -> HashFunction {
         match hash.trim().to_ascii_lowercase().as_str() {
@@ -77,121 +115,116 @@ impl HashFunction {
         }
     }
 
-    /// Get hash function name
-    pub fn name(self) -> &'static str {
-        match self {
-            HashFunction::Sha1 => "sha1",
-            HashFunction::Sha256 => "sha256",
-            HashFunction::Sha384 => "sha384",
-            HashFunction::Sha512 => "sha512",
-        }
-    }
+    // /// Get hash function name
+    // pub fn name(self) -> &'static str {
+    //     match self {
+    //         HashFunction::Sha1 => "sha1",
+    //         HashFunction::Sha256 => "sha256",
+    //         HashFunction::Sha384 => "sha384",
+    //         HashFunction::Sha512 => "sha512",
+    //     }
+    // }
 }
 
-impl fmt::Display for HashFunction {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.clone().name())
-    }
+// impl fmt::Display for HashFunction {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         write!(f, "{}", self.clone().name())
+//     }
+// }
+
+// TODO: use or delete
+
+#[derive(Debug, Copy, Clone, Default, Display, PartialEq)]
+pub enum OTPLength {
+    #[default]
+    #[strum(serialize = "6")]
+    Six = 6,
+    #[strum(serialize = "8")]
+    Eight = 8,
 }
 
-// USER INTERACTION
+// otpauth://totp/GitHub:username?secret=BASE32&issuer=GitHub
+#[derive(Debug, Builder, Default, Clone)]
+#[builder(default)]
+pub struct OTPLabel {
+    #[builder(default = "None")]
+    pub issuer:      Option<String>,
+    #[builder(default = "String::new()")]
+    pub accountname: String,
+}
+
+#[derive(Debug, Builder, Clone, Default)]
+#[builder(default)]
+pub struct OTPUri {
+    #[builder(default = "Vec::new()")]
+    pub secret:        Vec<u8>,
+    #[builder(default = "OTPType::TOTP")]
+    pub otptype:       OTPType,
+    #[builder(default = "None")]
+    pub hash_function: Option<HashFunction>,
+    #[builder(default = "None")]
+    pub counter:       Option<u64>,
+    #[builder(default = "None")]
+    pub period:        Option<u64>,
+    #[builder(default = "None")]
+    pub output_len:    Option<OTPLength>,
+    #[builder(default = "OTPLabel::default()")]
+    pub label:         OTPLabel,
+}
 
 /// OTP representation with all its options
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Builder, Default)]
+#[builder(default)]
 pub struct OneTimePassword {
     key:           Vec<u8>,
+    #[builder(default = "None")]
+    uri:           Option<String>,
+    #[builder(default = "0_u64")]
     counter:       u64,
-    totp:          bool,
+    #[builder(default = "30_u64")]
+    pub period:    u64,
+    #[builder(default = "true")]
+    pub totp:      bool,
+    #[builder(default = "6_usize")]
     output_len:    usize,
+    #[builder(default = "\"0123456789\".to_owned().into_bytes()")]
     output_base:   Vec<u8>,
+    #[builder(default = "HashFunction::Sha1")]
     hash_function: HashFunction,
     raw_key:       String,
 }
 
+impl From<Account> for OneTimePassword {
+    fn from(account: Account) -> Self {
+        Self {
+            key: parse_base32(&account.key).unwrap(),
+            uri: account.uri,
+            counter: account.counter.unwrap_or_default(),
+            period: account.period,
+            totp: account.totp,
+            hash_function: account.hash_function,
+            raw_key: account.key,
+            ..Default::default()
+        }
+    }
+}
+
 impl OneTimePassword {
-    pub fn new(
-        key: &str,
-        totp: bool,
-        hash_function: &str,
-        counter: Option<u64>,
-        output_len: Option<usize>,
-    ) -> Result<Self> {
-        Ok(Self {
-            key: BASE32_NOPAD
-                .decode(key.as_bytes())
-                .map_err(|err| OtpError::KeyDecode {
-                    key:   key.to_owned(),
-                    cause: Box::new(err),
-                })?,
-            counter: counter.unwrap_or(0_u64),
-            totp,
-            output_len: output_len.unwrap_or(6_usize),
-            output_base: "0123456789".to_owned().into_bytes(),
-            hash_function: HashFunction::from_str(hash_function),
-            raw_key: key.to_string(),
-        })
-    }
-
-    /// Return OTP code
-    pub fn generate(&self) -> String {
-        type HF = HashFunction;
-        let digest = hmac::sign(
-            &match self.hash_function {
-                HF::Sha1 => hmac::Key::new(hmac::HMAC_SHA1_FOR_LEGACY_USE_ONLY, &self.key),
-                HF::Sha256 => hmac::Key::new(hmac::HMAC_SHA256, &self.key),
-                HF::Sha384 => hmac::Key::new(hmac::HMAC_SHA384, &self.key),
-                HF::Sha512 => hmac::Key::new(hmac::HMAC_SHA512, &self.key),
-            },
-            &self.get_counter().to_be_bytes(),
-        );
-
-        self.encode_digest(digest.as_ref()).unwrap()
-    }
-
-    /// Encodes the HMAC digest into a 6-digit integer.
-    fn encode_digest(&self, digest: &[u8]) -> Result<String, OtpError> {
-        // let offset: usize = (digest[digest.len() - 1] & 0xf) as usize;
-        // let b: &[u8; 4] = (&digest[offset..offset + 4]).try_into().unwrap();
-        // let base = u32::from_be_bytes(*b) & 0x7fff_ffff;
-        //
-        // let code = format!(
-        //     "{:01$}",
-        //     base % (10 as u32).pow(self.output_len as u32),
-        //     self.output_len as usize
-        // );
-
-        // TODO: Add time until expiration
-
-        let offset = (*digest.last().unwrap() & 0xf) as usize;
-        let code_bytes: [u8; 4] = match digest[offset..offset + 4].try_into() {
-            Ok(x) => x,
-            Err(_) => return Err(OtpError::InvalidDigest(Vec::from(digest))),
-        };
-
-        let base = self.output_base.len() as u32;
-        let hotp_code = (u32::from_be_bytes(code_bytes) & 0x7fffffff)
-            % 1_000_000
-            % base.pow(self.output_len as u32);
-
-        let code = format!("{:0width$}", hotp_code, width = self.output_len);
-        Ok(code)
-    }
-
     // Calculate counter based on whether the OTP is time based or counter based
-    fn get_counter(&self) -> u64 {
+    pub fn get_counter(&self) -> u64 {
         if self.totp {
             let timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .map_err(OtpError::InvalidTimeError)
                 .unwrap()
                 .as_secs() as u64;
-            timestamp / 30
+            timestamp / self.period
         } else {
             self.counter
         }
     }
 
-    pub fn generate2(&self) -> String {
+    pub fn generate(&self) -> String {
         let counter = self.get_counter();
         let message: [u8; 8] = [
             ((counter >> 56) & 0xff) as u8,
@@ -210,10 +243,10 @@ impl OneTimePassword {
             HashFunction::Sha512 => hmac::Key::new(hmac::HMAC_SHA512, &self.key),
         };
         let digest = hmac::sign(&signing_key, &message);
-        self.encode_digest2(digest.as_ref())
+        self.encode_digest(digest.as_ref())
     }
 
-    fn encode_digest2(&self, digest: &[u8]) -> String {
+    fn encode_digest(&self, digest: &[u8]) -> String {
         let offset = (*digest.last().unwrap() & 0xf) as usize;
         let snum: u32 = ((u32::from(digest[offset]) & 0x7f) << 24)
             | ((u32::from(digest[offset + 1]) & 0xff) << 16)
@@ -221,29 +254,66 @@ impl OneTimePassword {
             | (u32::from(digest[offset + 3]) & 0xff);
         let base = self.output_base.len() as u32;
         let hotp_code = snum % base.pow(self.output_len as u32);
-        let code = format!("{:0width$}", hotp_code, width = self.output_len);
-        code
+        format!("{:0width$}", hotp_code, width = self.output_len)
+    }
+
+    /// Write 6 or 8 digit code to standard output
+    pub fn display_code(&self) {
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap()
+            .as_secs();
+
+        let duration = self.period - (now % self.period);
+        #[allow(clippy::cast_possible_truncation)]
+        let elapsed = (self.period - duration) as usize;
+        #[allow(clippy::cast_possible_truncation)]
+        let remaining = (duration % self.period) as usize;
+
+        // If this check is not here, a stack overflow will occur
+        if elapsed == 0 {
+            println!(
+                "{} {} [{}{}]",
+                self.generate().magenta().bold(),
+                format!("{}s", duration).green(),
+                "<".green().bold(),
+                "=".repeat(remaining - 1).green(),
+            );
+        } else {
+            println!(
+                "{} {} [{}{}{}]",
+                self.generate().magenta().bold(),
+                format!("{}s", duration).color(if remaining > 12 {
+                    "green"
+                } else if remaining > 6 {
+                    "yellow"
+                } else {
+                    "red"
+                }),
+                "-".repeat(elapsed + 1).red(),
+                "<".green().bold(),
+                "=".repeat(remaining - 1).green()
+            );
+        }
     }
 }
 
 /// Struct that OTP is stored
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Builder, Default)]
+#[builder(default)]
 pub struct Account {
     pub name:          String,
+    #[builder(default = "None")]
+    pub uri:           Option<String>,
     pub path:          PathBuf,
     pub key:           String,
+    #[builder(default = "true")]
     pub totp:          bool,
-    pub hash_function: String,
+    pub hash_function: HashFunction,
+    #[builder(default = "None")]
     pub counter:       Option<u64>,
-}
-
-impl From<Account> for Secret {
-    fn from(account: Account) -> Self {
-        Self {
-            name: account.name,
-            path: account.path
-        }
-    }
+    #[builder(default = "30_u64")]
+    pub period:        u64,
 }
 
 /// File that keeps track of all files containing OTP's
@@ -256,6 +326,9 @@ impl Default for OtpFile {
     }
 }
 
+// TODO: fix failure to communicate with gpg binary error not trapping
+// TODO: prevent having to write a file, or make it temporary to not have to
+// sync encryption on error
 impl OtpFile {
     /// Create a new instance of or open an existing OTP hashing file
     pub fn new(store: &Store) -> Result<Self> {
@@ -263,52 +336,15 @@ impl OtpFile {
         if !otp_file.exists() {
             tracing::debug!("creating parent dir of otp_file");
             otp_file.parent().map(fs::create_dir_all).transpose()?;
+            return Ok(Self::default());
         } else {
             let plaintext = crate::crypto::context(&crate::CONFIG)?
                 .decrypt_file(&otp_file)
                 .map_err(OtpError::Decrypt)?;
-            tracing::debug!("decrypting file");
-            let read: BTreeMap<String, Account> = serde_json::from_slice(plaintext.unsecure_ref())
-                .map_err(OtpError::SerDeserialization)?;
-            tracing::debug!("READ: {:#?}", read);
 
-            fs::write(
-                &otp_file,
-                serde_json::to_string_pretty(&read).map_err(OtpError::SerDeserialization)?,
-            )
-            .map_err(OtpError::Write)?;
+            serde_json::from_slice(plaintext.unsecure_ref())
+                .map_err(|e| anyhow!(OtpError::SerDeserialization(e)))
         }
-
-        let reader = match fs::File::open(otp_file.as_path()) {
-            Ok(file) => file,
-            Err(err) =>
-                if err.kind() == io::ErrorKind::NotFound {
-                    tracing::debug!("creating new otp file");
-                    return Ok(Self::default());
-                } else {
-                    tracing::error!(error=%err);
-                    return Err(err.into());
-                },
-        };
-
-        serde_json::from_reader(reader).map_err(Into::into)
-    }
-
-    /// Close the OTP file by encrypting it and writing back to disk
-    pub fn close(store: &Store) -> Result<()> {
-        let otp_file = store.root.join(OTP_DEFUALT_FILE);
-        let recipients = store.recipients()?;
-        crate::crypto::context(&crate::CONFIG)?
-            .encrypt_file(
-                &recipients,
-                Plaintext::from(
-                    fs::read(store.root.join(OTP_DEFUALT_FILE)).map_err(OtpError::ReadFile)?,
-                ),
-                &otp_file,
-            )
-            .map_err(OtpError::Encrypt)?;
-
-        Ok(())
     }
 
     /// Get the OTP account information
@@ -342,11 +378,100 @@ impl OtpFile {
 
     /// Save the modified OTP hash
     pub fn save(&self, store: &Store) -> Result<()> {
-        fs::write(
-            store.root.join(OTP_DEFUALT_FILE),
-            serde_json::to_string_pretty(&self.0)?,
-        )
-        .map_err(OtpError::WriteFile)?;
+        let otp_file = store.root.join(OTP_DEFUALT_FILE);
+        let recipients = store.recipients()?;
+
+        crate::crypto::context(&crate::CONFIG)?
+            .encrypt_file(
+                &recipients,
+                Plaintext::from(serde_json::to_string_pretty(&self.0)?),
+                &otp_file,
+            )
+            .map_err(OtpError::Encrypt)?;
         Ok(())
     }
+}
+
+pub fn parse_base32(key: &str) -> Result<Vec<u8>> {
+    Ok(BASE32_NOPAD
+        .decode(key.as_bytes())
+        .map_err(|err| OtpError::KeyDecode {
+            key:   key.to_owned(),
+            cause: Box::new(err),
+        })?)
+}
+
+pub fn has_uri(uri: &str) -> bool {
+    if !URI_RE.is_match(uri) {
+        return false;
+    }
+    uri_secret(uri).map_or(false, |s| {
+        if parse_base32(&s).is_ok() {
+            true
+        } else {
+            false
+        }
+    })
+}
+
+pub fn uri_secret(uri: &str) -> Result<String> {
+    Ok(URI_RE
+        .captures(&uri)
+        .ok_or(OtpError::RegexCaptures)?
+        .name("secret")
+        .ok_or(OtpError::RegexCaptureName("secret".to_string()))?
+        .as_str()
+        .to_owned())
+}
+
+pub fn uri_issuer(uri: &str) -> Result<String> {
+    Ok(URI_RE
+        .captures(&uri)
+        .ok_or(OtpError::RegexCaptures)?
+        .name("issuer")
+        .ok_or(OtpError::RegexCaptureName("issuer".to_string()))?
+        .as_str()
+        .to_owned())
+}
+
+pub fn uri_period(uri: &str) -> Result<u64> {
+    Ok(URI_RE
+        .captures(&uri)
+        .ok_or(OtpError::RegexCaptures)?
+        .name("period")
+        .map_or(30, |p| {
+            p.as_str()
+                .parse::<u64>()
+                .map_err(OtpError::ParseInt)
+                .unwrap()
+        }))
+}
+
+pub fn uri_digits(uri: &str) -> Result<usize> {
+    Ok(URI_RE
+        .captures(&uri)
+        .ok_or(OtpError::RegexCaptures)?
+        .name("digits")
+        .map_or(6, |p| {
+            p.as_str()
+                .parse::<usize>()
+                .map_err(OtpError::ParseInt)
+                .unwrap()
+        }))
+}
+
+pub fn uri_algorithm(uri: &str) -> Result<HashFunction> {
+    Ok(URI_RE
+        .captures(&uri)
+        .ok_or(OtpError::RegexCaptures)?
+        .name("algorithm")
+        .map_or(HashFunction::Sha1, |f| HashFunction::from_str(f.as_str())))
+}
+
+pub fn uri_type(uri: &str) -> Result<bool> {
+    Ok(URI_RE
+        .captures(&uri)
+        .ok_or(OtpError::RegexCaptures)?
+        .name("type")
+        .map_or(true, |p| if p.as_str() == "totp" { true } else { false }))
 }

@@ -116,10 +116,10 @@ fn remove_confirm(
             Ok(secret) => {
                 // TODO: is this error okay?
                 if let Err(err) = remove_confirm(store, &secret, matcher_main, ignore) {
-                    error::print_error(err.context("failed to remove alias target, ignoring"));
+                    error::print_error(&err.context("failed to remove alias target, ignoring"));
                 }
             }
-            Err(err) => error::print_error(err.context("failed to query alias target, ignoring")),
+            Err(err) => error::print_error(&err.context("failed to query alias target, ignoring")),
         }
     }
 
@@ -127,7 +127,7 @@ fn remove_confirm(
     #[cfg(feature = "alias")]
     for secret in find_symlinks_to(store, secret) {
         if let Err(err) = remove_confirm(store, &secret, matcher_main, ignore) {
-            error::print_error(err.context("failed to remove alias, ignoring"));
+            error::print_error(&err.context("failed to remove alias, ignoring"));
         }
     }
 
@@ -184,7 +184,7 @@ pub(crate) fn remove_empty_secret_dir(secret: &Secret) {
     // Remove secret directory if empty
     if let Err(err) = remove_empty_dir(secret.path.parent().unwrap(), true) {
         error::print_error(
-            anyhow!(err).context("failed to remove now empty secret directory, ignoring"),
+            &anyhow!(err).context("failed to remove now empty secret directory, ignoring"),
         );
     }
 }

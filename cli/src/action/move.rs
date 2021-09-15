@@ -156,7 +156,7 @@ fn update_alias_for_secret_to(store: &Store, secret: &Secret, new_secret: &Secre
     for secret in super::remove::find_symlinks_to(&store, &secret) {
         if let Err(err) = update_alias(&store, &new_secret, &secret.path, &secret.path) {
             error::print_error(
-                err.context("failed to update path of alias that points to moved secret, ignoring"),
+                &err.context("failed to update path of alias that points to moved secret, ignoring"),
             );
         }
     }

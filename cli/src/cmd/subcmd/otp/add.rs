@@ -1,7 +1,8 @@
 use clap::{App, Arg};
 use data_encoding::BASE32_NOPAD;
+use prs_lib::otp::has_uri;
 
-use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg, ArgQuery};
+use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, CmdArg};
 
 /// The add command definition.
 pub(crate) struct CmdAdd;
@@ -27,14 +28,45 @@ impl CmdAdd {
                     .short('k')
                     .alias("secret")
                     .takes_value(true)
-                    .required(true)
+                    .required_unless_present("uri")
                     .about("Secret key of the OTP")
-                    .validator(
-                        |arg| match BASE32_NOPAD.decode(arg.to_uppercase().as_bytes()) {
-                            Ok(_) => Ok(()),
-                            Err(_) => Err(String::from("the key is not a valid base32 encoding")),
-                        },
-                    ),
+                    .validator(|p| {
+                        BASE32_NOPAD
+                            .decode(p.to_uppercase().as_bytes())
+                            .map_err(|_| "the key is not a valid base32 encoding")
+                            .map(|_| ())
+                            .map_err(ToString::to_string)
+                    }),
+            )
+            .arg(
+                Arg::new("uri")
+                    .long("uri")
+                    .short('u')
+                    .conflicts_with("KEY")
+                    .takes_value(true)
+                    .about("URI format of OTP")
+                    .validator(|p| {
+                        if has_uri(p) {
+                            Ok(())
+                        } else {
+                            Err(String::from("invalid URI format"))
+                        }
+                    }),
+            )
+            .arg(
+                Arg::new("period")
+                    .long("period")
+                    .short('p')
+                    .value_name("NUM")
+                    .takes_value(false)
+                    .conflicts_with("hotp")
+                    .about("Specify period/interval that account resets")
+                    .validator(|p| {
+                        p.parse::<u64>()
+                            .map_err(|_| "must be a positive number")
+                            .map(|_| ())
+                            .map_err(ToString::to_string)
+                    }),
             )
             .arg(
                 Arg::new("totp")

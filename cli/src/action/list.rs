@@ -2,9 +2,9 @@ use std::io;
 
 use anyhow::Result;
 use clap::ArgMatches;
+use colored::Colorize;
 use prs_lib::{store::SecretIterConfig, Secret, Store};
 use text_trees::{FormatCharacters, StringTreeNode, TreeFormatting};
-use colored::Colorize;
 use thiserror::Error;
 
 #[cfg(all(feature = "tomb", target_os = "linux"))]
@@ -45,7 +45,7 @@ impl<'a> List<'a> {
 
         // List aliases based on filters, sort the list
         let config = SecretIterConfig {
-            find_files: !matcher_list.only_aliases(),
+            find_files:         !matcher_list.only_aliases(),
             find_symlink_files: !matcher_list.only_non_aliases(),
         };
         let mut secrets: Vec<Secret> = store
@@ -61,7 +61,9 @@ impl<'a> List<'a> {
 
         // Show a list or tree
         if matcher_list.list() {
-            secrets.iter().for_each(|s| println!("{}", s.name));
+            for s in secrets {
+                println!("{}", s.name);
+            }
         } else {
             display_tree(&secrets);
         }
@@ -91,8 +93,8 @@ fn display_tree(secrets: &[Secret]) {
 
 /// Build tree nodes from given secret names.
 ///
-/// The prefix defines the prefix to ignore from secret names. Should be `""` when parsing a new
-/// tree.
+/// The prefix defines the prefix to ignore from secret names. Should be `""`
+/// when parsing a new tree.
 ///
 /// # Warnings
 ///

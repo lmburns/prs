@@ -1,11 +1,7 @@
-#![allow(unused)]
-use std::{fs, io};
-
 use anyhow::Result;
 use clap::ArgMatches;
 // use data_encoding::{DecodeError, BASE32_NOPAD};
 use colored::Colorize;
-use std::path::Path;
 use thiserror::Error;
 
 use crate::{
@@ -14,13 +10,10 @@ use crate::{
         otp::{remove::RemoveMatcher, OtpMatcher},
         Matcher,
     },
-    util::{cli, edit, error, select, sync},
+    util::{cli, error, select, sync},
 };
 
-use prs_lib::{
-    otp::{Account, HashFunction, OneTimePassword, OtpFile},
-    Plaintext, Secret, Store,
-};
+use prs_lib::{otp::OtpFile, Store};
 
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 use crate::util::tomb;
@@ -69,40 +62,26 @@ impl<'a> Remove<'a> {
 
         let account_rm = if let Some(acc) = matcher_remove.account() {
             acc.to_string()
-        } else if let Some(sec) = select::select_otp(&otp_file) {
-            sec.name.clone()
         } else {
-            OtpFile::close(&store);
-            if !matcher_remove.no_sync() {
-                sync.finalize("Re-encrypted OTP file")?;
-            }
-            return Err(anyhow::anyhow!(Err::NoneSelected));
+            let sec = select::select_otp(&otp_file).ok_or(Err::NoneSelected)?;
+            sec.name.clone()
         };
 
-        // TODO: reverse cli prompt and prevent a sync if exiting
-        // This looks really ugly
         if otp_file.get(&account_rm).is_some() {
-            if cli::prompt_yes(
+            if !cli::prompt_yes(
                 format!("Remove: {}", account_rm.red().bold()).as_str(),
                 Some(true),
                 &matcher_main,
             ) {
-                // error::quit();
-                otp_file.delete(account_rm.clone());
-                if let Err(e) = otp_file.save(&store) {
-                    error::print_error(e);
-                } else if !matcher_main.quiet() {
-                    eprintln!("Successfully removed OTP account");
-                }
-            } else if matcher_main.verbose() {
-                eprintln!("Removal cancelled");
+                error::quit();
+            }
+            otp_file.delete(account_rm.clone());
+            if let Err(e) = otp_file.save(&store) {
+                error::print_error(&e);
             }
         } else {
             println!("Account does not exist");
         }
-
-        // Encrypt and write changed plaintext
-        OtpFile::close(&store)?;
 
         // Finalize sync
         if !matcher_remove.no_sync() {
@@ -112,6 +91,10 @@ impl<'a> Remove<'a> {
         // Finalize tomb
         #[cfg(all(feature = "tomb", target_os = "linux"))]
         tomb::finalize_tomb(&mut tomb, &matcher_main, true).map_err(Err::Tomb)?;
+
+        if !matcher_main.quiet() {
+            eprintln!("Successfully removed OTP account");
+        }
 
         Ok(())
     }

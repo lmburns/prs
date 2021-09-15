@@ -10,6 +10,7 @@ use super::{
 use std::env;
 
 /// CLI argument handler.
+#[derive(Debug)]
 pub(crate) struct Handler {
     /// The CLI matches.
     matches: ArgMatches,
@@ -84,6 +85,7 @@ impl<'a> Handler {
             .subcommand(subcmd::CmdEdit::build())
             .subcommand(subcmd::CmdGenerate::build())
             .subcommand(subcmd::CmdGit::build())
+            .subcommand(subcmd::CmdGrep::build())
             .subcommand(subcmd::CmdHousekeeping::build())
             .subcommand(subcmd::CmdInit::build())
             .subcommand(subcmd::CmdInternal::build())
@@ -159,6 +161,11 @@ impl<'a> Handler {
     /// Get the git sub command, if matched.
     pub(crate) fn git(&'a self) -> Option<matcher::GitMatcher> {
         matcher::GitMatcher::with(&self.matches)
+    }
+
+    /// Get the grep sub command, if matched.
+    pub(crate) fn grep(&'a self) -> Option<matcher::GrepMatcher> {
+        matcher::GrepMatcher::with(&self.matches)
     }
 
     /// Get the housekeeping sub command, if matched.

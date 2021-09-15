@@ -17,7 +17,7 @@ use crate::util::style::{highlight, highlight_error, highlight_info, highlight_w
 
 /// Print the given error in a proper format for the user,
 /// with it's causes.
-pub(crate) fn print_error(err: anyhow::Error) {
+pub(crate) fn print_error(err: &anyhow::Error) {
     // Report each printable error, count them
     let count = err
         .chain()
@@ -45,7 +45,7 @@ pub(crate) fn print_error_msg<S>(err: S)
 where
     S: AsRef<str> + Display + Debug + Sync + Send + 'static,
 {
-    print_error(anyhow!(err));
+    print_error(&anyhow!(err));
 }
 
 /// Print a warning.
@@ -65,7 +65,7 @@ pub(crate) fn quit() -> ! {
 /// and print the given error.
 pub(crate) fn quit_error(err: anyhow::Error, hints: impl Borrow<ErrorHints>) -> ! {
     // Print the error
-    print_error(err);
+    print_error(&err);
 
     // Print error hints
     hints.borrow().print(false);
@@ -84,7 +84,7 @@ where
 }
 
 /// The error hint configuration.
-#[derive(Clone, Builder)]
+#[derive(Debug, Clone, Builder)]
 #[builder(default)]
 pub(crate) struct ErrorHints {
     /// A list of info messages to print along with the error.

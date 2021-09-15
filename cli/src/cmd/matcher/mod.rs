@@ -8,6 +8,7 @@ pub(crate) mod duplicate;
 pub(crate) mod edit;
 pub(crate) mod generate;
 pub(crate) mod git;
+pub(crate) mod grep;
 pub(crate) mod housekeeping;
 pub(crate) mod init;
 pub(crate) mod internal;
@@ -37,6 +38,7 @@ pub(crate) use self::{
     edit::EditMatcher,
     generate::GenerateMatcher,
     git::GitMatcher,
+    grep::GrepMatcher,
     housekeeping::HousekeepingMatcher,
     init::InitMatcher,
     internal::InternalMatcher,

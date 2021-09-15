@@ -1,3 +1,4 @@
+#![feature(derive_default_enum)]
 pub mod crypto;
 pub(crate) mod git;
 pub mod otp;
