@@ -40,17 +40,9 @@ impl<'a> Otp<'a> {
             return view::View::new(self.cmd_matches).invoke();
         }
 
-        Ok(())
-
-        // if matcher_housekeeping.run().is_some() {
-        //     return run::Run::new(self.cmd_matches).invoke();
-        // }
-        //
-        // if matcher_housekeeping.sync_keys().is_some() {
-        //     return sync_keys::SyncKeys::new(self.cmd_matches).invoke();
-        // }
+        // Ok(())
 
         // Unreachable, clap will print help for missing sub command instead
-        // unreachable!()
+        unreachable!()
     }
 }

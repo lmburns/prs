@@ -8,7 +8,7 @@ pub(crate) fn ensure_ready(sync: &Sync, allow_dirty: bool) {
         Ok(readyness) => readyness,
         Err(err) => {
             quit_error(
-                err.context("failed to query store sync readyness state"),
+                &err.context("failed to query store sync readyness state"),
                 ErrorHintsBuilder::default().git(true).build().unwrap(),
             );
         }

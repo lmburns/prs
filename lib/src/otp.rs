@@ -327,8 +327,6 @@ impl Default for OtpFile {
 }
 
 // TODO: fix failure to communicate with gpg binary error not trapping
-// TODO: prevent having to write a file, or make it temporary to not have to
-// sync encryption on error
 impl OtpFile {
     /// Create a new instance of or open an existing OTP hashing file
     pub fn new(store: &Store) -> Result<Self> {

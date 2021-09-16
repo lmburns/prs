@@ -140,7 +140,7 @@ fn main() {
 
     // Invoke the proper action
     if let Err(err) = invoke_action(&cmd_handler) {
-        quit_error(err, ErrorHints::default());
+        quit_error(&err, ErrorHints::default());
     };
 }
 

@@ -30,7 +30,7 @@ pub(crate) fn prompt(msg: &str, main_matcher: &MainMatcher) -> String {
         .map_err(|err| -> anyhow::Error { err.into() })
     {
         quit_error(
-            err.context("failed to read input from prompt"),
+            &err.context("failed to read input from prompt"),
             ErrorHints::default(),
         );
     }

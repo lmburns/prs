@@ -83,12 +83,15 @@ fn display_tree(secrets: &[Secret]) {
     let nodes = tree_nodes("", &names);
 
     // Build root tree, print to stdout
-    StringTreeNode::with_child_nodes(".".into(), nodes.into_iter())
-        .write_with_format(
-            &mut io::stdout(),
-            &TreeFormatting::dir_tree(FormatCharacters::box_chars()),
-        )
-        .expect("failed to print tree list");
+    StringTreeNode::with_child_nodes(
+        "Password Store".blue().bold().to_string(),
+        nodes.into_iter(),
+    )
+    .write_with_format(
+        &mut io::stdout(),
+        &TreeFormatting::dir_tree(FormatCharacters::box_chars()),
+    )
+    .expect("failed to print tree list");
 }
 
 /// Build tree nodes from given secret names.
@@ -140,13 +143,33 @@ fn tree_nodes(prefix: &str, mut secrets: &[&str]) -> Vec<StringTreeNode> {
         let (children, todo) = secrets.split_at(next_child_name);
         secrets = todo;
         nodes.push(StringTreeNode::with_child_nodes(
-            child_name.red().to_string().into(),
+            // Here in case colors would like to be modified
+            #[allow(clippy::if_same_then_else)]
+            // Directory name
+            if children[0].contains('/') && child_prefix == child_name {
+                child_name.blue().bold().to_string()
+            // Secrets within the directory
+            } else if children[0].contains('/') {
+                child_name.magenta().to_string()
+            // Files in main PASSWORD_STORE_DIR directory, but aren't directories themselves
+            } else if child_prefix == child_name {
+                child_name.magenta().to_string()
+            // Fallback
+            } else {
+                child_name.red().to_string()
+            },
             tree_nodes(&child_prefix, children).into_iter(),
         ));
     }
 
     nodes
 }
+
+// #[derive(Debug, Clone, Default, PartialEq, Eq, PartialOrd, Ord)]
+// pub struct Tree {
+//     pub root: PathBuf,
+//     pub leaves: Vec<Tree>,
+// }
 
 #[derive(Debug, Error)]
 pub(crate) enum Err {

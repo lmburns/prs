@@ -1,17 +1,18 @@
-use std::thread;
-use std::time::Duration;
+use std::{thread, time::Duration};
 
 use anyhow::Result;
 use clap::ArgMatches;
 use prs_lib::{crypto::prelude::*, Store};
 use thiserror::Error;
 
-use crate::cmd::matcher::{show::ShowMatcher, MainMatcher, Matcher};
 #[cfg(feature = "clipboard")]
 use crate::util::clipboard;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 use crate::util::tomb;
-use crate::util::{secret, select};
+use crate::{
+    cmd::matcher::{show::ShowMatcher, MainMatcher, Matcher},
+    util::{secret, select},
+};
 
 /// Show secret action.
 pub(crate) struct Show<'a> {
@@ -74,7 +75,8 @@ impl<'a> Show<'a> {
             )?;
         }
 
-        secret::print(&plaintext).map_err(Err::Print)?;
+        // secret::print(&plaintext).map_err(Err::Print)?;
+        secret::print_colored(&plaintext).map_err(|e| Err::PrintColor(e.into()))?;
 
         // Clear after timeout
         if let Some(timeout) = matcher_show.timeout() {
@@ -115,8 +117,11 @@ pub(crate) enum Err {
     #[error("failed to read secret")]
     Read(#[source] anyhow::Error),
 
-    #[error("failed to print secret to stdout")]
-    Print(#[source] std::io::Error),
+    // #[error("failed to print secret to stdout")]
+    // Print(#[source] std::io::Error),
+
+    #[error("failed to print colored secret to stdout")]
+    PrintColor(#[source] anyhow::Error),
 
     #[error("failed to select property from secret")]
     Property(#[source] anyhow::Error),

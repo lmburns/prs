@@ -63,9 +63,9 @@ pub(crate) fn quit() -> ! {
 
 /// Quit the application with an error code,
 /// and print the given error.
-pub(crate) fn quit_error(err: anyhow::Error, hints: impl Borrow<ErrorHints>) -> ! {
+pub(crate) fn quit_error(err: &anyhow::Error, hints: impl Borrow<ErrorHints>) -> ! {
     // Print the error
-    print_error(&err);
+    print_error(err);
 
     // Print error hints
     hints.borrow().print(false);
@@ -80,7 +80,7 @@ pub(crate) fn quit_error_msg<S>(err: S, hints: impl Borrow<ErrorHints>) -> !
 where
     S: AsRef<str> + Display + Debug + Sync + Send + 'static,
 {
-    quit_error(anyhow!(err), hints);
+    quit_error(&anyhow!(err), hints);
 }
 
 /// The error hint configuration.
