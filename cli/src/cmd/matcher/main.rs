@@ -4,6 +4,7 @@ use super::Matcher;
 
 /// The main command matcher.
 #[derive(Debug)]
+#[allow(clippy::module_name_repetitions)]
 pub struct MainMatcher<'a> {
     matches: &'a ArgMatches,
 }

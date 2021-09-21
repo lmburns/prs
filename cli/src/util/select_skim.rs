@@ -28,9 +28,7 @@ fn skim_select(items: SkimItemReceiver, prompt: &str) -> Option<String> {
             .and_then(|val| shlex::split(&val))
             .unwrap_or_default(),
     );
-    // For the  --color option, try and not pickup --preview, which can contain
-    // '--color' (e.g., 'bat --color=always {}'). Could also check next item in
-    // vector if item only equals '--color'.
+
     let prompt = format!("{}: ", prompt);
     let options = SkimOptionsBuilder::default()
         .prompt(Some(&prompt))

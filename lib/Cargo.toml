@@ -8,23 +8,23 @@ homepage = "https://timvisee.com/projects/prs"
 repository = "https://gitlab.com/timvisee/prs"
 description = "Secure, fast & convenient password manager CLI with GPG & git sync"
 keywords = ["pass", "passwordstore"]
-categories = [
-    "authentication",
-    "command-line-utilities",
-    "cryptography",
-]
+categories = ["authentication", "command-line-utilities", "cryptography"]
 edition = "2018"
 
 [badges]
 gitlab = { repository = "timvisee/prs", branch = "master" }
 
 [features]
-default = ["backend-gnupg-bin"]
+# TODO: remove age
+default = ["backend-gnupg-bin", "backend-age", "otp"]
 
 ### Regular features
 
 # Option: tomb support for password store on Linux
 tomb = ["fs_extra", "nix"]
+
+# Option (default): OTP encoder
+otp = ["ring", "data-encoding"]
 
 ### Pluggable cryptography backends
 
@@ -33,6 +33,11 @@ backend-gpgme = ["gpgme"]
 
 # Option (default): GnuPG cryptography backend using gpg binary
 backend-gnupg-bin = ["regex", "version-compare"]
+
+# TODO: add ssh flags for age
+
+# Option: use age as default backend encryption
+backend-age = ["age"]
 
 ### Private/internal/automatic features
 
@@ -47,7 +52,10 @@ thiserror = "1.0"
 walkdir = "2.0"
 which = "4.0"
 zeroize = "1.1"
-ring = "0.16.20"
+
+# OTP support
+ring = { version = "0.16.20", optional = true }
+data-encoding = { version = "2.3.2", optional = true }
 
 # Tomb support
 fs_extra = { version = "1.2", optional = true }
@@ -63,13 +71,14 @@ regex = { version = "1.5.4", optional = true }
 dirs-next = "2.0"
 once_cell = "1.8.0"
 serde = "1.0.130"
-data-encoding = "2.3.2"
 serde_json = "1.0.67"
 tracing = "0.1.26"
 derive_builder = "0.10.2"
 strum_macros = "0.21.1"
 strum = "0.21.0"
 colored = "2.0.0"
+
+age = { version = "0.6.0", features = ["armor", "cli-common", "plugin", "ssh"], optional = true }
 
 # Vendored shellexpand fork until crate is updated
 # See ./src/vendor/shellexpand.rs

@@ -21,7 +21,7 @@ pub(crate) fn prompt(msg: &str, main_matcher: &MainMatcher) -> String {
 
     // Show the prompt
     eprint!("{}: ", msg);
-    let _ = stderr().flush();
+    let _d = stderr().flush();
 
     // Get the input
     let mut input = String::new();

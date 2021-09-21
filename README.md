@@ -13,7 +13,6 @@
 # TODO:
 * [`pass-vera`](https://github.com/lmburns/pass-vera.git) implementation
 * Support `pwned`
-* Support `grep`
 * Add attributes from CLI similar to [`knox`](https://github.com/apognu/knox.git)
 * Add QRCode for `otp`
 * Parse URI
@@ -22,6 +21,8 @@
 
 ## Fork
 * Support `TOTP` codes
+* Support `prs grep`
+* Respects `PASSWORD_STORE_UMASK` when creating files
 
 > A secure, fast & convenient password manager CLI using GPG and git to sync.
 

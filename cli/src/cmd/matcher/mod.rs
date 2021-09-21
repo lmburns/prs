@@ -8,6 +8,7 @@ pub(crate) mod duplicate;
 pub(crate) mod edit;
 pub(crate) mod generate;
 pub(crate) mod git;
+#[cfg(feature = "grep")]
 pub(crate) mod grep;
 pub(crate) mod housekeeping;
 pub(crate) mod init;
@@ -15,6 +16,7 @@ pub(crate) mod internal;
 pub(crate) mod list;
 pub(crate) mod main;
 pub(crate) mod r#move;
+#[cfg(feature = "otp")]
 pub(crate) mod otp;
 pub(crate) mod recipients;
 pub(crate) mod remove;
@@ -28,6 +30,10 @@ pub mod tomb;
 pub(crate) use self::alias::AliasMatcher;
 #[cfg(feature = "clipboard")]
 pub(crate) use self::copy::CopyMatcher;
+#[cfg(feature = "grep")]
+pub(crate) use self::grep::GrepMatcher;
+#[cfg(feature = "otp")]
+pub(crate) use self::otp::OtpMatcher;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 pub use self::tomb::TombMatcher;
 #[rustfmt::skip]
@@ -38,13 +44,11 @@ pub(crate) use self::{
     edit::EditMatcher,
     generate::GenerateMatcher,
     git::GitMatcher,
-    grep::GrepMatcher,
     housekeeping::HousekeepingMatcher,
     init::InitMatcher,
     internal::InternalMatcher,
     list::ListMatcher,
     main::MainMatcher,
-    otp::OtpMatcher,
     r#move::MoveMatcher,
     recipients::RecipientsMatcher,
     remove::RemoveMatcher,

@@ -6,3 +6,5 @@
 pub mod gnupg_bin;
 #[cfg(feature = "backend-gpgme")]
 pub mod gpgme;
+// #[cfg(feature = "backend-age")]
+// pub mod rage;

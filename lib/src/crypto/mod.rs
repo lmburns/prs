@@ -1,9 +1,11 @@
 //! Crypto interface.
 //!
-//! This module provides an interface to all cryptography features that are used in prs.
+//! This module provides an interface to all cryptography features that are used
+//! in prs.
 //!
-//! It supports multiple cryptography protocols (e.g. GPG) and multiple backends (e.g. GPGME,
-//! GnuPG). The list of supported protocols and backends may be extended in the future.
+//! It supports multiple cryptography protocols (e.g. GPG) and multiple backends
+//! (e.g. GPGME, GnuPG). The list of supported protocols and backends may be
+//! extended in the future.
 
 pub mod backend;
 pub mod proto;
@@ -11,20 +13,17 @@ pub mod recipients;
 pub mod store;
 pub mod util;
 
-use std::collections::HashMap;
-use std::fmt;
-use std::fs;
-use std::path::Path;
+use std::{collections::HashMap, fmt, fs, io::Write, os::unix::fs::OpenOptionsExt, path::Path};
 
 use anyhow::Result;
 use thiserror::Error;
 
-use crate::{Ciphertext, Plaintext, Recipients};
+use crate::{Ciphertext, Plaintext, Recipients, STORE_UMASK};
 
 /// Crypto protocol.
 ///
-/// This list contains all protocols supported by the prs project. This does not mean that all
-/// protocols are supported at runtime in a given build.
+/// This list contains all protocols supported by the prs project. This does not
+/// mean that all protocols are supported at runtime in a given build.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
 pub enum Proto {
@@ -117,8 +116,9 @@ impl fmt::Display for Key {
 ///
 /// # Errors
 ///
-/// Errors if no compatible crypto context is available for the selected protocol because no
-/// backend is providing it. Also errors if creating the context fails.
+/// Errors if no compatible crypto context is available for the selected
+/// protocol because no backend is providing it. Also errors if creating the
+/// context fails.
 #[allow(unreachable_code)]
 pub fn context(config: &Config) -> Result<Context, Err> {
     // Select proper crypto backend
@@ -133,7 +133,7 @@ pub fn context(config: &Config) -> Result<Context, Err> {
                 backend::gnupg_bin::context::context(config)
                     .map_err(|err| Err::Context(err.into()))?,
             )));
-        }
+        },
     }
 
     Err(Err::Unsupported(config.proto))
@@ -187,8 +187,8 @@ impl IsContext for Context {
 
 /// Defines generic crypto context.
 ///
-/// Implemented on backend specific cryptography contexcts, makes using it possible through a
-/// single simple interface.
+/// Implemented on backend specific cryptography contexcts, makes using it
+/// possible through a single simple interface.
 pub trait IsContext {
     /// Encrypt plaintext for recipients.
     fn encrypt(&mut self, recipients: &Recipients, plaintext: Plaintext) -> Result<Ciphertext>;
@@ -200,8 +200,17 @@ pub trait IsContext {
         plaintext: Plaintext,
         path: &Path,
     ) -> Result<()> {
-        fs::write(path, self.encrypt(recipients, plaintext)?.unsecure_ref())
+        let mut file = fs::OpenOptions::new()
+            .mode(0o666 - (0o666 & *STORE_UMASK))
+            .write(true)
+            .create(true)
+            .open(&path)?;
+
+        file.write_all(self.encrypt(recipients, plaintext)?.unsecure_ref())
             .map_err(|err| Err::WriteFile(err).into())
+
+        // fs::write(path, self.encrypt(recipients, plaintext)?.unsecure_ref())
+        //     .map_err(|err| Err::WriteFile(err).into())
     }
 
     /// Decrypt ciphertext.
@@ -262,7 +271,17 @@ pub trait IsContext {
 
     /// Export the given key from the keychain to a file.
     fn export_key_file(&mut self, key: Key, path: &Path) -> Result<()> {
-        fs::write(path, self.export_key(key)?).map_err(|err| Err::WriteFile(err).into())
+        let mut file = fs::OpenOptions::new()
+            .mode(0o666 - (0o666 & *STORE_UMASK))
+            .write(true)
+            .create(true)
+            .open(&path)?;
+
+        file.write_all(&self.export_key(key)?)
+            .map_err(|err| Err::WriteFile(err).into())
+
+        // fs::write(path, self.export_key(key)?).map_err(|err|
+        // Err::WriteFile(err).into())
     }
 
     /// Check whether this context supports the given protocol.
@@ -271,8 +290,8 @@ pub trait IsContext {
 
 /// A pool of proto contexts.
 ///
-/// Makes using multiple contexts easy, by caching contexts by protocol type and initializing them
-/// on demand.
+/// Makes using multiple contexts easy, by caching contexts by protocol type and
+/// initializing them on demand.
 pub struct ContextPool {
     /// All loaded contexts.
     contexts: HashMap<Proto, Context>,
@@ -288,8 +307,8 @@ impl ContextPool {
 
     /// Get mutable context for given proto.
     ///
-    /// This will initialize the context if no context is loaded for the given proto yet. This
-    /// may error..
+    /// This will initialize the context if no context is loaded for the given
+    /// proto yet. This may error..
     pub fn get_mut<'a>(&'a mut self, config: &'a Config) -> Result<&'a mut Context> {
         Ok(self
             .contexts

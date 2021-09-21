@@ -34,7 +34,7 @@ use crate::util::error::{quit_error_msg, ErrorHints};
 /// Quit on error.
 // TODO: do not wrap commands in sh/cmd, we should not have to do this and only causes problems
 // TODO: provide list of arguments instead of a command string for better reliability/compatability
-pub(crate) fn invoke_cmd(cmd: String, dir: Option<&Path>, verbose: bool) -> Result<(), std::io::Error> {
+pub(crate) fn invoke_cmd(cmd: &String, dir: Option<&Path>, verbose: bool) -> Result<(), std::io::Error> {
     if verbose {
         eprintln!("Invoking: {}\n", cmd);
     }
@@ -54,7 +54,7 @@ pub(crate) fn invoke_cmd(cmd: String, dir: Option<&Path>, verbose: bool) -> Resu
         quit_error_msg(
             format!(
                 "{} exited with status code {}",
-                cmd.trim_start().split(" ").next().unwrap_or("command"),
+                cmd.trim_start().split(' ').next().unwrap_or("command"),
                 status.code().unwrap_or(-1)
             ),
             ErrorHints::default(),
@@ -78,7 +78,7 @@ pub(crate) fn bin_name() -> String {
         .filter(|path| !path.is_empty())
         .map(PathBuf::from)
         .or_else(|| env::current_exe().ok())
-        .and_then(|p| p.file_name().map(|n| n.to_owned()))
+        .and_then(|p| p.file_name().map(ToOwned::to_owned))
         .and_then(|n| n.into_string().ok())
         .unwrap_or_else(|| crate_name!().into())
 }

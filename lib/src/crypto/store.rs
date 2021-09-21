@@ -1,12 +1,16 @@
 //! Helpers to use recipients with password store.
 
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::{
+    fs,
+    io::Write,
+    os::unix::fs::OpenOptionsExt,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Result;
 use thiserror::Error;
 
-use super::{prelude::*, recipients::Recipients, util, Config, ContextPool, Key, Proto};
+use super::{prelude::*, recipients::Recipients, util, Config, ContextPool, Key, Proto, STORE_UMASK};
 use crate::Store;
 
 /// Password store GPG IDs file.
@@ -57,20 +61,28 @@ fn read_fingerprints<P: AsRef<Path>>(path: P) -> Result<Vec<String>> {
 
 /// Write fingerprints to the given file.
 fn write_fingerprints<P: AsRef<Path>, S: AsRef<str>>(path: P, fingerprints: &[S]) -> Result<()> {
-    fs::write(
-        path,
+    let mut file = fs::OpenOptions::new()
+        .mode(0o666 - (0o666 & *STORE_UMASK))
+        .truncate(true)
+        .write(true)
+        .create(true)
+        .open(&path)?;
+
+    file.write_all(
         fingerprints
-            .into_iter()
-            .map(|k| k.as_ref())
+            .iter()
+            .map(AsRef::as_ref)
             .collect::<Vec<_>>()
-            .join("\n"),
+            .join("\n")
+            .as_bytes(),
     )
     .map_err(|err| Err::WriteFile(err).into())
 }
 
 /// Load the keys for the given store.
 ///
-/// This will try to load the keys for all configured protocols, and errors if it fails.
+/// This will try to load the keys for all configured protocols, and errors if
+/// it fails.
 pub fn store_load_keys(store: &Store) -> Result<Vec<Key>> {
     let mut keys = Vec::new();
 
@@ -95,7 +107,8 @@ pub fn store_load_keys(store: &Store) -> Result<Vec<Key>> {
 
 /// Load the recipients for the given store.
 ///
-/// This will try to load the recipient keys for all configured protocols, and errors if it fails.
+/// This will try to load the recipient keys for all configured protocols, and
+/// errors if it fails.
 pub fn store_load_recipients(store: &Store) -> Result<Recipients> {
     Ok(Recipients::from(store_load_keys(store)?))
 }
@@ -132,9 +145,9 @@ pub fn store_save_recipients(store: &Store, recipients: &Recipients) -> Result<(
 /// - Removes obsolete keys that are not a selected recipient
 /// - Adds missing keys that are a recipient
 ///
-/// This syncs public key files for all protocols. This is because the public key files themselves
-/// don't specify what protocol they use. All public key files and keys must therefore be taken
-/// into consideration all at once.
+/// This syncs public key files for all protocols. This is because the public
+/// key files themselves don't specify what protocol they use. All public key
+/// files and keys must therefore be taken into consideration all at once.
 pub fn store_sync_public_key_files(store: &Store, keys: &[Key]) -> Result<()> {
     // Get public keys directory, ensure it exists
     let dir = store_public_keys_dir(store);
@@ -220,7 +233,8 @@ pub enum ImportResult {
     /// Key with given fingerprint was imported into keychain.
     Imported(String),
 
-    /// Key with given fingerprint was not found and was not imported in keychain.
+    /// Key with given fingerprint was not found and was not imported in
+    /// keychain.
     Unavailable(String),
 }
 

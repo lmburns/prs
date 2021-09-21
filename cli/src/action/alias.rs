@@ -105,7 +105,7 @@ impl<'a> Alias<'a> {
 /// This may be different to use the correct relative symlink path for a secret at `place_at` that
 /// will be moved to `dst` in the future.
 pub(crate) fn create_alias(store: &Store, src: &Secret, dst: &Path, place_at: &Path) -> Result<(), Err> {
-    create_symlink(secret_link_path(&store, &src, &dst)?, place_at)
+    create_symlink(secret_link_path(store, src, dst)?, place_at)
 }
 
 /// Create a symlink.

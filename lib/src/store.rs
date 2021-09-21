@@ -7,6 +7,8 @@ use std::{
 };
 
 use anyhow::{ensure, Result};
+use once_cell::sync::OnceCell;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use walkdir::{DirEntry, WalkDir};
@@ -22,6 +24,10 @@ use crate::{
 
 /// Password store secret file suffix.
 pub const SECRET_SUFFIX: &str = ".gpg";
+
+/// Prevent multiple compilations of the same `Regex`.
+/// Used for checking for 'sneaky' paths
+static SNEAKY_RE: OnceCell<Regex> = OnceCell::new();
 
 /// Represents a password store.
 #[derive(Debug, Clone, Serialize, Deserialize, Eq)]
@@ -135,6 +141,19 @@ impl Store {
         FindSecret::Many(self.secrets(query))
     }
 
+    /// Check for 'sneaky' paths found within the password store
+    pub fn check_sneaky_paths<P: AsRef<Path>>(&self, path: P) -> Result<(), Err> {
+        let path = path.as_ref();
+        if SNEAKY_RE
+            .get_or_init(|| Regex::new("/..$|^../|/../|^..$").unwrap())
+            .is_match(&(path.display().to_string()))
+        {
+            return Err(Err::SneakyPath(path.into()));
+        }
+
+        Ok(())
+    }
+
     /// Normalizes a path for a secret in this store.
     ///
     /// - Ensures path is within store.
@@ -147,6 +166,8 @@ impl Store {
         name_hint: Option<&str>,
         create_dirs: bool,
     ) -> Result<PathBuf> {
+        self.check_sneaky_paths(&target)?;
+
         // Take target as base path
         let mut path = PathBuf::from(target.as_ref());
 
@@ -461,4 +482,7 @@ pub enum Err {
 
     #[error("cannot use directory as target without name hint")]
     TargetDirWithoutNamehint(PathBuf),
+
+    #[error("{0:?} contains a sneaky pattern")]
+    SneakyPath(PathBuf),
 }

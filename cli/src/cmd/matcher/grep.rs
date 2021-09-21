@@ -1,4 +1,3 @@
-#![allow(unused)]
 use clap::ArgMatches;
 
 use super::Matcher;

@@ -57,7 +57,7 @@ impl<'a> Git<'a> {
 // TODO: call through Command directly, possibly through lib interface
 pub(crate) fn git(store: &Store, cmd: String, verbose: bool) -> Result<()> {
     util::invoke_cmd(
-        format!("{} -C {} {}", BIN_NAME, store.root.display(), cmd),
+        &format!("{} -C {} {}", BIN_NAME, store.root.display(), cmd),
         Some(&store.root),
         verbose,
     )

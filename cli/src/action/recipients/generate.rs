@@ -118,7 +118,7 @@ impl<'a> Generate<'a> {
                 sync.finalize(format!(
                     "Generate and add recipient {}",
                     new_keys
-                        .into_iter()
+                        .iter()
                         .map(|k| k.fingerprint(true))
                         .collect::<Vec<_>>()
                         .join(", "),
@@ -145,7 +145,7 @@ impl<'a> Generate<'a> {
 /// Return new keys as recipients.
 pub(crate) fn gpg_generate(matcher_main: &MainMatcher) -> Result<Recipients> {
     // List recipients before
-    let mut context = crate::crypto::context(&matcher_main)?;
+    let mut context = crate::crypto::context(matcher_main)?;
     let before = Recipients::from(context.keys_private()?);
 
     // Generate key through GPG
@@ -153,7 +153,7 @@ pub(crate) fn gpg_generate(matcher_main: &MainMatcher) -> Result<Recipients> {
         eprintln!("===== GPG START =====");
     }
     util::invoke_cmd(
-        format!("{} --full-generate-key", BIN_NAME),
+        &format!("{} --full-generate-key", BIN_NAME),
         None,
         matcher_main.verbose(),
     )

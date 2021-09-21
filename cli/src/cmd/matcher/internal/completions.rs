@@ -119,6 +119,7 @@ impl Shell {
     }
 
     /// Suggested file name for completions file of current shell.
+    #[allow(unused)]
     pub(crate) fn file_name(self, bin_name: &str) -> String {
         match self {
             Shell::Bash => format!("{}.bash", bin_name),
@@ -144,30 +145,26 @@ impl Shell {
         }
     }
 
-    // /// Generate completion script.
-    // pub fn generate_to<S, T>(self, app: &mut App<'_>, bin_name: S, out_dir: T)
-    // where
-    //     S: Into<String>,
-    //     T: Into<std::ffi::OsString>,
-    // {
-    //     match self {
-    //         Shell::Bash => {
-    //             clap_generate::generate_to::<generators::Bash, _, _>(app,
-    // bin_name, out_dir)         }
-    //         Shell::Elvish => {
-    //             clap_generate::generate_to::<generators::Elvish, _, _>(app,
-    // bin_name, out_dir)         }
-    //         Shell::Fish => {
-    //             clap_generate::generate_to::<generators::Fish, _, _>(app,
-    // bin_name, out_dir)         }
-    //         Shell::PowerShell => {
-    //             clap_generate::generate_to::<generators::PowerShell, _, _>(app,
-    // bin_name, out_dir)         }
-    //         Shell::Zsh => {
-    //             clap_generate::generate_to::<generators::Zsh, _, _>(app,
-    // bin_name, out_dir)         }
-    //     }
-    // }
+    /// Generate completion script to a directory
+    pub(crate) fn generate_to<S, T>(self, app: &mut App<'_>, bin_name: S, out_dir: T)
+    where
+        S: Into<String>,
+        T: Into<std::ffi::OsString>,
+    {
+        match self {
+            Shell::Bash =>
+                clap_generate::generate_to::<generators::Bash, _, _>(app, bin_name, out_dir),
+            Shell::Elvish =>
+                clap_generate::generate_to::<generators::Elvish, _, _>(app, bin_name, out_dir),
+            Shell::Fish =>
+                clap_generate::generate_to::<generators::Fish, _, _>(app, bin_name, out_dir),
+            Shell::PowerShell =>
+                clap_generate::generate_to::<generators::PowerShell, _, _>(app, bin_name, out_dir),
+            Shell::Zsh =>
+                clap_generate::generate_to::<generators::Zsh, _, _>(app, bin_name, out_dir),
+        }
+        .expect("error generating completions");
+    }
 }
 
 impl fmt::Display for Shell {

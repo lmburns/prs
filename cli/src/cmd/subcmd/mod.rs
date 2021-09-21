@@ -8,12 +8,14 @@ pub(crate) mod duplicate;
 pub(crate) mod edit;
 pub(crate) mod generate;
 pub(crate) mod git;
+#[cfg(feature = "grep")]
 pub(crate) mod grep;
 pub(crate) mod housekeeping;
 pub(crate) mod init;
 pub(crate) mod internal;
 pub(crate) mod list;
 pub(crate) mod r#move;
+#[cfg(feature = "otp")]
 pub(crate) mod otp;
 pub(crate) mod recipients;
 pub(crate) mod remove;
@@ -27,6 +29,10 @@ pub mod tomb;
 pub(crate) use self::alias::CmdAlias;
 #[cfg(feature = "clipboard")]
 pub(crate) use self::copy::CmdCopy;
+#[cfg(feature = "grep")]
+pub(crate) use self::grep::CmdGrep;
+#[cfg(feature = "otp")]
+pub(crate) use self::otp::CmdOtp;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 pub use self::tomb::CmdTomb;
 #[rustfmt::skip]
@@ -37,12 +43,10 @@ pub(crate) use self::{
     edit::CmdEdit,
     generate::CmdGenerate,
     git::CmdGit,
-    grep::CmdGrep,
     housekeeping::CmdHousekeeping,
     init::CmdInit,
     internal::CmdInternal,
     list::CmdList,
-    otp::CmdOtp,
     r#move::CmdMove,
     recipients::CmdRecipients,
     remove::CmdRemove,
