@@ -139,7 +139,7 @@ impl ErrorHints {
             return;
         }
 
-        eprint!("\n");
+        eprintln!();
 
         // Print hints
         let bin = crate::util::bin_name();

@@ -5,13 +5,13 @@ use super::Matcher;
 use crate::util::error::{quit_error, quit_error_msg, ErrorHints};
 
 /// The tomb resize command matcher.
-pub struct ResizeMatcher<'a> {
+pub(crate) struct ResizeMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 impl ResizeMatcher<'_> {
     /// The size in megabytes.
-    pub fn size(&self) -> Option<u32> {
+    pub(crate) fn size(&self) -> Option<u32> {
         let size = self.matches.value_of("size")?;
         let size = match size.parse::<u32>() {
             Ok(size) => size,

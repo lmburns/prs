@@ -335,7 +335,7 @@ impl OtpFile {
         if !otp_file.exists() {
             tracing::debug!("creating parent dir of otp_file");
             otp_file.parent().map(fs::create_dir_all).transpose()?;
-            return Ok(Self::default());
+            Ok(Self::default())
         } else {
             let plaintext = crate::crypto::context(&crate::CONFIG)?
                 .decrypt_file(&otp_file)
@@ -405,17 +405,13 @@ pub fn has_uri(uri: &str) -> bool {
         return false;
     }
     uri_secret(uri).map_or(false, |s| {
-        if parse_base32(&s).is_ok() {
-            true
-        } else {
-            false
-        }
+        parse_base32(&s).is_ok()
     })
 }
 
 pub fn uri_secret(uri: &str) -> Result<String> {
     Ok(URI_RE
-        .captures(&uri)
+        .captures(uri)
         .ok_or(OtpError::RegexCaptures)?
         .name("secret")
         .ok_or(OtpError::RegexCaptureName("secret".to_string()))?
@@ -425,7 +421,7 @@ pub fn uri_secret(uri: &str) -> Result<String> {
 
 pub fn uri_issuer(uri: &str) -> Result<String> {
     Ok(URI_RE
-        .captures(&uri)
+        .captures(uri)
         .ok_or(OtpError::RegexCaptures)?
         .name("issuer")
         .ok_or(OtpError::RegexCaptureName("issuer".to_string()))?
@@ -435,7 +431,7 @@ pub fn uri_issuer(uri: &str) -> Result<String> {
 
 pub fn uri_period(uri: &str) -> Result<u64> {
     Ok(URI_RE
-        .captures(&uri)
+        .captures(uri)
         .ok_or(OtpError::RegexCaptures)?
         .name("period")
         .map_or(30, |p| {
@@ -448,7 +444,7 @@ pub fn uri_period(uri: &str) -> Result<u64> {
 
 pub fn uri_digits(uri: &str) -> Result<usize> {
     Ok(URI_RE
-        .captures(&uri)
+        .captures(uri)
         .ok_or(OtpError::RegexCaptures)?
         .name("digits")
         .map_or(6, |p| {
@@ -461,7 +457,7 @@ pub fn uri_digits(uri: &str) -> Result<usize> {
 
 pub fn uri_algorithm(uri: &str) -> Result<HashFunction> {
     Ok(URI_RE
-        .captures(&uri)
+        .captures(uri)
         .ok_or(OtpError::RegexCaptures)?
         .name("algorithm")
         .map_or(HashFunction::Sha1, |f| HashFunction::from_str(f.as_str())))
@@ -469,8 +465,8 @@ pub fn uri_algorithm(uri: &str) -> Result<HashFunction> {
 
 pub fn uri_type(uri: &str) -> Result<bool> {
     Ok(URI_RE
-        .captures(&uri)
+        .captures(uri)
         .ok_or(OtpError::RegexCaptures)?
         .name("type")
-        .map_or(true, |p| if p.as_str() == "totp" { true } else { false }))
+        .map_or(true, |p| p.as_str() == "totp"))
 }

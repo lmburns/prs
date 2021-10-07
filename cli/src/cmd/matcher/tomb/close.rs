@@ -3,13 +3,13 @@ use clap::ArgMatches;
 use super::Matcher;
 
 /// The tomb close command matcher.
-pub struct CloseMatcher<'a> {
+pub(crate) struct CloseMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 impl CloseMatcher<'_> {
     /// Whether to try to close.
-    pub fn do_try(&self) -> bool {
+    pub(crate) fn do_try(&self) -> bool {
         self.matches.is_present("try")
     }
 }

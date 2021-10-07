@@ -7,7 +7,7 @@ pub(crate) struct CmdCompletions;
 
 impl CmdCompletions {
     pub(crate) fn build<'a>() -> App<'a> {
-        let shell_variants: Vec<_> = Shell::variants().into_iter().map(|v| v.name()).collect();
+        let shell_variants: Vec<_> = Shell::variants().iter().map(|v| v.name()).collect();
 
         App::new("completions")
             .about("Shell completions")

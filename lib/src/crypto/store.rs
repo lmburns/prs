@@ -177,7 +177,7 @@ pub fn store_sync_public_key_files(store: &Store, keys: &[Key]) -> Result<()> {
     // Add missing keys
     let mut contexts = ContextPool::empty();
     for (key, fp) in keys
-        .into_iter()
+        .iter()
         .map(|k| (k, k.fingerprint(false)))
         .filter(|(_, fp)| !files.iter().any(|(_, other)| fp == other))
     {

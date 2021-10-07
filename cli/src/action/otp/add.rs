@@ -111,7 +111,7 @@ impl<'a> Add<'a> {
         if otp_file.get(&acc.name).is_some() {
             error::print_error_msg("Account already exists");
         } else {
-            otp_file.add(acc.clone());
+            otp_file.add(acc);
             match otp_file.save(&store) {
                 Ok(_) => println!(),
                 Err(err) => error::print_error(&err),

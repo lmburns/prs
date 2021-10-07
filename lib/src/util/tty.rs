@@ -32,10 +32,7 @@ pub fn get_tty() -> Option<PathBuf> {
 /// Panics if a depth of `SYMLINK_DEPTH_MAX` is reached to prevent infinite loops.
 fn resolve_symlink(path: &Path, depth: u8) -> Option<PathBuf> {
     // Panic if we're getting too deep
-    if depth >= SYMLINK_DEPTH_MAX {
-        // TODO: do not panic, return last unique path or return error
-        panic!("failed to resolve symlink because it is too deep, possible loop?");
-    }
+    assert!(!depth >= SYMLINK_DEPTH_MAX, "failed to resolve symlink because it is too deep, possible loop?");
 
     // Read symlink path, recursively find target
     match path.read_link() {

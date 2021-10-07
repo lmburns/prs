@@ -55,7 +55,7 @@ impl<'a> Generate<'a> {
 
             // Select secret
             let secret =
-                select::store_select_secret(&store, matcher_generate.name().map(|s| s.to_owned()))
+                select::store_select_secret(&store, matcher_generate.name().map(std::borrow::ToOwned::to_owned))
                     .ok_or(Err::NoneSelected)?;
 
             Some((secret.path.clone(), secret))
@@ -65,7 +65,7 @@ impl<'a> Generate<'a> {
                     let path = store
                         .normalize_secret_path(dest, None, true)
                         .map_err(Err::NormalizePath)?;
-                    let secret = Secret::from(&store, path.to_path_buf());
+                    let secret = Secret::from(&store, path.clone());
 
                     // Prepare store sync
                     sync::ensure_ready(&sync, matcher_generate.allow_dirty());

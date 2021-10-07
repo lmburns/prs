@@ -1,10 +1,10 @@
 use clap::{App, Arg};
 
 /// The tomb close command definition.
-pub struct CmdClose;
+pub(crate) struct CmdClose;
 
 impl CmdClose {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("close")
             .alias("c")
             .alias("stop")

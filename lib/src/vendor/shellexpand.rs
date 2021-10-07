@@ -189,15 +189,13 @@ where
         Cow::Owned(s) => {
             // if the original string does not start with a tilde but the processed one does,
             // then the tilde is contained in one of variables and should not be expanded
-            if !input.as_ref().starts_with("~") && s.starts_with("~") {
+            if !input.as_ref().starts_with('~') && s.starts_with('~') {
                 // return as is
                 s.into()
+            } else if let Cow::Owned(s) = tilde_with_context(&s, home_dir) {
+                s.into()
             } else {
-                if let Cow::Owned(s) = tilde_with_context(&s, home_dir) {
-                    s.into()
-                } else {
-                    s.into()
-                }
+                s.into()
             }
         }
     })
@@ -537,7 +535,7 @@ where
                     }
                 }
             } else {
-                result.push_str("$");
+                result.push('$');
                 input_str = if next_char == Some('$') {
                     &input_str[2..] // skip the next dollar for escaping
                 } else {
@@ -773,7 +771,7 @@ mod tilde_tests {
 
 #[cfg(test)]
 mod env_test {
-    use std;
+    
 
     use super::{env, env_with_context, LookupError};
 

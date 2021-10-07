@@ -221,7 +221,7 @@ impl<'a> Handler {
 
     /// Get the tomb sub command, if matched.
     #[cfg(all(feature = "tomb", target_os = "linux"))]
-    pub fn tomb(&'a self) -> Option<matcher::TombMatcher> {
+    pub(crate) fn tomb(&'a self) -> Option<matcher::TombMatcher> {
         matcher::TombMatcher::with(&self.matches)
     }
 }

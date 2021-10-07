@@ -3,13 +3,13 @@ use clap::ArgMatches;
 use super::Matcher;
 
 /// The tomb status command matcher.
-pub struct StatusMatcher<'a> {
+pub(crate) struct StatusMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 impl StatusMatcher<'_> {
     /// Check whether to open the tomb.
-    pub fn open(&self) -> bool {
+    pub(crate) fn open(&self) -> bool {
         self.matches.is_present("open")
     }
 }

@@ -79,7 +79,7 @@ pub fn guess_ssh_persist_support(repo: &Path) -> bool {
         .collect();
 
     // Ensure all SSH URI hosts are part of whitelist, assume incompatible on error
-    let supported = ssh_uris.iter().all(|uri| match ssh_uri_host(&uri) {
+    let supported = ssh_uris.iter().all(|uri| match ssh_uri_host(uri) {
         Some(host) => SSH_PERSIST_HOST_WHITELIST.contains(&host.to_lowercase().as_str()),
         None => false,
     });
@@ -116,9 +116,9 @@ fn ssh_uri_host(mut uri: &str) -> Option<&str> {
 
     // Strip the URI until we're left with the host
     // TODO: this is potentially unreliable, improve this logic
-    let before_slash = uri.splitn(2, '/').next().unwrap();
+    let before_slash = uri.split_once('/').map_or(uri, |x| x.0);
     let after_at = before_slash.splitn(2, '@').last().unwrap();
-    let before_collon = after_at.splitn(2, ':').next().unwrap();
+    let before_collon = after_at.split_once(':').map_or(after_at, |x| x.0);
     let uri = before_collon.trim();
 
     // Ensure the host is at least 3 characters long

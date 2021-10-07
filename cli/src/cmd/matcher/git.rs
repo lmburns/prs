@@ -13,9 +13,7 @@ impl<'a: 'b, 'b> GitMatcher<'a> {
     /// Get the git command to invoke.
     pub(crate) fn command(&self) -> String {
         self.matches
-            .values_of("COMMAND")
-            .map(|c| c.collect::<Vec<_>>().join(" "))
-            .unwrap_or_else(|| "".into())
+            .values_of("COMMAND").map_or_else(|| "".into(), |c| c.collect::<Vec<_>>().join(" "))
     }
 
     /// The store.

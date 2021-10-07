@@ -22,7 +22,7 @@ pub(crate) mod remove;
 pub(crate) mod show;
 pub(crate) mod sync;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
-pub mod tomb;
+pub(crate) mod tomb;
 
 // Re-export to cmd module
 #[cfg(feature = "alias")]
@@ -34,7 +34,7 @@ pub(crate) use self::grep::CmdGrep;
 #[cfg(feature = "otp")]
 pub(crate) use self::otp::CmdOtp;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
-pub use self::tomb::CmdTomb;
+pub(crate) use self::tomb::CmdTomb;
 #[rustfmt::skip]
 pub(crate) use self::{
     add::CmdAdd,

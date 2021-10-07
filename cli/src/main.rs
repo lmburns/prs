@@ -40,7 +40,6 @@
     unused_lifetimes,
     unused_parens,
     unused_qualifications,
-    variant_size_differences,
     while_true
 )]
 #![allow(

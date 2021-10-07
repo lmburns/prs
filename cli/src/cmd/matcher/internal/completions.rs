@@ -59,7 +59,7 @@ impl<'a: 'b, 'b> CompletionsMatcher<'a> {
     pub(crate) fn name(&'a self) -> String {
         self.matches
             .value_of("name")
-            .map_or_else(util::bin_name, |n| n.into())
+            .map_or_else(util::bin_name, std::convert::Into::into)
     }
 }
 

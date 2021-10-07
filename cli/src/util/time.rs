@@ -15,7 +15,7 @@ use thiserror::Error;
 /// - `23h14m`
 /// - `9m55s`
 /// - `1s1s1s1s1s`
-pub fn parse_duration(duration: &str) -> Result<usize, ParseDurationError> {
+pub(crate) fn parse_duration(duration: &str) -> Result<usize, ParseDurationError> {
     // Build a regex to grab time parts
     let re = Regex::new(r"(?i)([0-9]+)(([a-z]|\s*$))")
         .expect("failed to compile duration parsing regex");
@@ -68,7 +68,7 @@ pub fn parse_duration(duration: &str) -> Result<usize, ParseDurationError> {
 /// - `9m55s`
 /// - `1s`
 /// - `now`
-pub fn format_duration(mut secs: u32) -> String {
+pub(crate) fn format_duration(mut secs: u32) -> String {
     // Get the total number of seconds, return immediately if zero or less
     if secs <= 0 {
         return "now".into();
@@ -99,7 +99,7 @@ pub fn format_duration(mut secs: u32) -> String {
 
 /// Represents a duration parsing error.
 #[derive(Debug, Error)]
-pub enum ParseDurationError {
+pub(crate) enum ParseDurationError {
     /// The given duration string did not contain any duration part.
     #[error("given string did not contain any duration part")]
     Empty,

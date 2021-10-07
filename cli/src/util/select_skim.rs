@@ -206,7 +206,7 @@ fn skim_secret_items(secrets: &[Secret]) -> SkimItemReceiver {
         secrets
             .iter()
             .cloned()
-            .map(|e| e.into())
+            .map(std::convert::Into::into)
             .collect::<Vec<SkimSecret>>(),
     )
 }
@@ -216,7 +216,7 @@ fn skim_key_items(keys: &[Key]) -> SkimItemReceiver {
     skim_items(
         keys.iter()
             .cloned()
-            .map(|e| e.into())
+            .map(std::convert::Into::into)
             .collect::<Vec<SkimKey>>(),
     )
 }

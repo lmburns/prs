@@ -60,7 +60,7 @@ impl<'a: 'b, 'b> AddMatcher<'a> {
     pub(crate) fn algorithm(&self) -> HashFunction {
         self.matches
             .value_of("algorithm")
-            .map_or(HashFunction::Sha1, |val| HashFunction::from_str(val))
+            .map_or(HashFunction::Sha1, HashFunction::from_str)
     }
 
     /// Check what hashing algorithm to as a str

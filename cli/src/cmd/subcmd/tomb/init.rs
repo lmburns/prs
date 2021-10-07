@@ -7,10 +7,10 @@ use crate::util::time;
 static TIMER_DEFAULT: Lazy<String> = Lazy::new(|| time::format_duration(prs_lib::tomb::TOMB_AUTO_CLOSE_SEC));
 
 /// The tomb init command definition.
-pub struct CmdInit;
+pub(crate) struct CmdInit;
 
 impl CmdInit {
-    pub fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> App<'a> {
         App::new("init")
             .alias("initialize")
             .about("Initialize tomb in-place for current password store")

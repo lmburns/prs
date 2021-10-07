@@ -6,13 +6,13 @@ use crate::util::error::{quit_error, ErrorHints};
 use anyhow::anyhow;
 
 /// The tomb init command matcher.
-pub struct InitMatcher<'a> {
+pub(crate) struct InitMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
 impl InitMatcher<'_> {
     /// The time to automatically close.
-    pub fn timer(&self) -> Option<u32> {
+    pub(crate) fn timer(&self) -> Option<u32> {
         let time = self.matches.value_of("timer").unwrap_or("0");
         match crate::util::time::parse_duration(time) {
             Ok(0) => None,
@@ -22,12 +22,12 @@ impl InitMatcher<'_> {
     }
 
     /// Whether to allow a dirty repository for syncing.
-    pub fn allow_dirty(&self) -> bool {
+    pub(crate) fn allow_dirty(&self) -> bool {
         ArgAllowDirty::is_present(self.matches)
     }
 
     /// Whether to not sync.
-    pub fn no_sync(&self) -> bool {
+    pub(crate) fn no_sync(&self) -> bool {
         ArgNoSync::is_present(self.matches)
     }
 }

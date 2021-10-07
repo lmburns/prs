@@ -16,18 +16,18 @@ use crate::{
 };
 
 /// A tomb open action.
-pub struct Open<'a> {
+pub(crate) struct Open<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Open<'a> {
     /// Construct a new init action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the init action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_main = MainMatcher::with(self.cmd_matches).unwrap();
         let matcher_tomb = TombMatcher::with(self.cmd_matches).unwrap();
@@ -83,7 +83,7 @@ impl<'a> Open<'a> {
             } else {
                 eprintln!("Password store Tomb opened");
             }
-            eprintln!("");
+            eprintln!();
             eprintln!("To close the Tomb, use:");
             eprintln!(
                 "    {}",
@@ -98,7 +98,7 @@ impl<'a> Open<'a> {
 /// Open the tomb.
 pub(crate) fn open(tomb: &mut Tomb, matcher_main: &MainMatcher) -> Result<(), Err> {
     // Prompt user to add force flag
-    if !tomb.settings.force && util::tomb::ask_to_force(&matcher_main) {
+    if !tomb.settings.force && util::tomb::ask_to_force(matcher_main) {
         tomb.settings.force = true;
     }
 
@@ -129,7 +129,7 @@ pub(crate) fn open(tomb: &mut Tomb, matcher_main: &MainMatcher) -> Result<(), Er
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to access password store")]
     Store(#[source] anyhow::Error),
 

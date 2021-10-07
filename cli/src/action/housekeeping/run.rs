@@ -77,11 +77,11 @@ pub(crate) fn housekeeping(store: &Store, allow_dirty: bool, no_sync: bool) -> R
         sync.prepare()?;
     }
 
-    set_store_permissions(&store).map_err(Err::Perms)?;
+    set_store_permissions(store).map_err(Err::Perms)?;
 
     if sync.is_init() {
-        set_git_ignore(&store).map_err(Err::GitAttributes)?;
-        set_git_attributes(&store).map_err(Err::GitAttributes)?;
+        set_git_ignore(store).map_err(Err::GitAttributes)?;
+        set_git_attributes(store).map_err(Err::GitAttributes)?;
     }
 
     // Finalize sync

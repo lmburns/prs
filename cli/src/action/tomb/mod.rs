@@ -1,8 +1,8 @@
-pub mod close;
-pub mod init;
-pub mod open;
-pub mod resize;
-pub mod status;
+pub(crate) mod close;
+pub(crate) mod init;
+pub(crate) mod open;
+pub(crate) mod resize;
+pub(crate) mod status;
 
 use anyhow::Result;
 use clap::ArgMatches;
@@ -10,18 +10,18 @@ use clap::ArgMatches;
 use crate::cmd::matcher::{tomb::TombMatcher, Matcher};
 
 /// Tomb management action.
-pub struct Tomb<'a> {
+pub(crate) struct Tomb<'a> {
     cmd_matches: &'a ArgMatches,
 }
 
 impl<'a> Tomb<'a> {
     /// Construct a new sync action.
-    pub fn new(cmd_matches: &'a ArgMatches) -> Self {
+    pub(crate) fn new(cmd_matches: &'a ArgMatches) -> Self {
         Self { cmd_matches }
     }
 
     /// Invoke the sync action.
-    pub fn invoke(&self) -> Result<()> {
+    pub(crate) fn invoke(&self) -> Result<()> {
         // Create the command matchers
         let matcher_tomb = TombMatcher::with(self.cmd_matches).unwrap();
 

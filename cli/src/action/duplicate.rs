@@ -54,9 +54,9 @@ impl<'a> Duplicate<'a> {
 
         // Normalize dest path
         let path = store
-            .normalize_secret_path(dest, secret.path.file_name().and_then(|p| p.to_str()), true)
+            .normalize_secret_path(dest, secret.path.file_name().and_then(std::ffi::OsStr::to_str), true)
             .map_err(Err::NormalizePath)?;
-        let new_secret = Secret::from(&store, path.to_path_buf());
+        let new_secret = Secret::from(&store, path.clone());
 
         // Check if destination already exists if not forcing
         if !matcher_main.force() && path.is_file() {

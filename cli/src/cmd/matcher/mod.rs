@@ -23,7 +23,7 @@ pub(crate) mod remove;
 pub(crate) mod show;
 pub(crate) mod sync;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
-pub mod tomb;
+pub(crate) mod tomb;
 
 // Re-export to matcher module
 #[cfg(feature = "alias")]
@@ -35,7 +35,7 @@ pub(crate) use self::grep::GrepMatcher;
 #[cfg(feature = "otp")]
 pub(crate) use self::otp::OtpMatcher;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
-pub use self::tomb::TombMatcher;
+pub(crate) use self::tomb::TombMatcher;
 #[rustfmt::skip]
 pub(crate) use self::{
     add::AddMatcher,

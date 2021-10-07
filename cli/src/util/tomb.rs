@@ -5,7 +5,7 @@ use crate::cmd::matcher::MainMatcher;
 use crate::util::{self, error, style};
 
 /// Prepare Tomb.
-pub fn prepare_tomb(tomb: &mut Tomb, matcher_main: &MainMatcher) -> Result<()> {
+pub(crate) fn prepare_tomb(tomb: &mut Tomb, matcher_main: &MainMatcher) -> Result<()> {
     // When opening a Tomb the user must force when SWAP is available, ask whether to force
     if !tomb.settings.force && tomb.is_tomb() {
         // Tomb must not be open yet, ignore errors
@@ -21,7 +21,7 @@ pub fn prepare_tomb(tomb: &mut Tomb, matcher_main: &MainMatcher) -> Result<()> {
 }
 
 /// Finalize Tomb.
-pub fn finalize_tomb(tomb: &mut Tomb, matcher_main: &MainMatcher, changed: bool) -> Result<()> {
+pub(crate) fn finalize_tomb(tomb: &mut Tomb, matcher_main: &MainMatcher, changed: bool) -> Result<()> {
     // Ask to enlarge Tomb if it gets too small when contents changed
     if changed && !matcher_main.quiet() && tomb.is_tomb() && tomb.is_open().unwrap_or(false) {
         if let Ok(sizes) = tomb.fetch_size_stats() {
@@ -51,7 +51,7 @@ pub fn finalize_tomb(tomb: &mut Tomb, matcher_main: &MainMatcher, changed: bool)
 ///
 /// This will not check whether the Tomb is already open, in which case forcing would not be
 /// required.
-pub fn ask_to_force(matcher_main: &MainMatcher) -> bool {
+pub(crate) fn ask_to_force(matcher_main: &MainMatcher) -> bool {
     // Skip if already forced
     if matcher_main.force() {
         return true;
