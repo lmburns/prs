@@ -112,7 +112,7 @@ impl<'a> Init<'a> {
         // Start timer
         if let Some(timer) = timer {
             if let Err(err) = tomb.stop_timer() {
-                error::print_error(err.context(
+                error::print_error(&err.context(
                     "failed to stop existing timer to automatically close password store tomb, ignoring",
                 ));
             }

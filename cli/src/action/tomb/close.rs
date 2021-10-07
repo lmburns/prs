@@ -70,7 +70,7 @@ impl<'a> Close<'a> {
 
         // Close any running close timers
         if let Err(err) = tomb.stop_timer() {
-            error::print_error(err.context("failed to stop auto closing systemd timer, ignoring"));
+            error::print_error(&err.context("failed to stop auto closing systemd timer, ignoring"));
         }
 
         if !matcher_main.quiet() {

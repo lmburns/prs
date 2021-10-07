@@ -33,12 +33,11 @@ pub(crate) fn ensure_dir_free(path: &Path) -> Result<(), std::io::Error> {
 
 /// Check whether the system has SWAP enabled.
 #[cfg(all(feature = "tomb", target_os = "linux"))]
-pub fn has_swap() -> Result<bool, Err> {
+pub(crate) fn has_swap() -> Result<bool, Err> {
     Ok(fs::read_to_string("/proc/swaps")
         .map_err(Err::HasSwap)?
         .lines()
-        .skip(1)
-        .next()
+        .nth(2)
         .filter(|l| !l.trim().is_empty())
         .is_some())
 }

@@ -15,7 +15,7 @@ pub struct TombMatcher<'a> {
     matches: &'a ArgMatches,
 }
 
-impl<'a: 'b, 'b> TombMatcher<'a> {
+impl<'a> TombMatcher<'a> {
     /// Get the tomb init sub command, if matched.
     pub fn cmd_init(&'a self) -> Option<init::InitMatcher> {
         init::InitMatcher::with(&self.root)

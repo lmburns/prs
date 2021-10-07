@@ -18,9 +18,9 @@ pub(crate) mod stdin;
 pub(crate) mod style;
 pub(crate) mod sync;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
-pub mod time;
+pub(crate) mod time;
 #[cfg(all(feature = "tomb", target_os = "linux"))]
-pub mod tomb;
+pub(crate) mod tomb;
 
 use std::env;
 use std::path::{Path, PathBuf};

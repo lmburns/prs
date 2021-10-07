@@ -9,7 +9,6 @@ use std::io;
 use thiserror::Error;
 
 #[cfg(all(feature = "tomb", target_os = "linux"))]
-use crate::cmd::matcher::MainMatcher;
 use crate::cmd::matcher::{grep::GrepMatcher, MainMatcher, Matcher};
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 use crate::util::tomb;

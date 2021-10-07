@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Result};
 use clap::ArgMatches;
-use prs_lib::tomb::Tomb;
-use prs_lib::Store;
+use prs_lib::{tomb::Tomb, Store};
 use thiserror::Error;
 
 use crate::{
@@ -67,8 +66,9 @@ impl<'a> Open<'a> {
         // Start timer
         if let Some(timer) = timer {
             if let Err(err) = tomb.stop_timer() {
-                error::print_error(err.context(
-                    "failed to stop existing timer to automatically close password store tomb, ignoring",
+                error::print_error(&err.context(
+                    "failed to stop existing timer to automatically close password store tomb, \
+                     ignoring",
                 ));
             }
             tomb.start_timer(timer, true).map_err(Err::Timer)?;
@@ -113,7 +113,7 @@ pub(crate) fn open(tomb: &mut Tomb, matcher_main: &MainMatcher) -> Result<(), Er
     let show_error_hints = !errs.is_empty();
     for err in errs {
         error::print_error(
-            anyhow!(err).context("failed to run housekeeping task after opening tomb, ignoring"),
+            &anyhow!(err).context("failed to run housekeeping task after opening tomb, ignoring"),
         );
     }
     if show_error_hints {

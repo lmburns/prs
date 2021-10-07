@@ -1,7 +1,9 @@
-use std::io::Write;
-use std::process::{Command, Stdio};
-use std::thread;
-use std::time::Duration;
+use std::{
+    io::Write,
+    process::{Command, Stdio},
+    thread,
+    time::Duration,
+};
 
 use anyhow::Result;
 #[cfg(all(
@@ -79,12 +81,14 @@ pub(crate) fn copy_timeout(data: &[u8], timeout: u64, report: bool) -> Result<()
 
 /// Copy with timeout on X11.
 ///
-/// Keeps clipboard contents in clipboard even if application quits. Doesn't fuck with other
-/// clipboard contents and reverts back to previous contents once a timeout is reached.
+/// Keeps clipboard contents in clipboard even if application quits. Doesn't
+/// fuck with other clipboard contents and reverts back to previous contents
+/// once a timeout is reached.
 ///
-/// Forks & detaches two processes to set/keep clipboard contents and to drive the timeout.
+/// Forks & detaches two processes to set/keep clipboard contents and to drive
+/// the timeout.
 ///
-/// Based on: https://docs.rs/copypasta-ext/0.3.4/copypasta_ext/x11_fork/index.html
+/// Based on: <https://docs.rs/copypasta-ext/0.3.4/copypasta_ext/x11_fork/index.html/>
 #[cfg(all(
     unix,
     not(any(target_os = "macos", target_os = "android", target_os = "emscripten")),
@@ -109,13 +113,13 @@ fn copy_timeout_x11(data: &[u8], timeout: u64, report: bool) -> Result<()> {
         0 => {
             // Obtain new X11 clipboard context, set clipboard contents
             let clip = X11Clipboard::new()
-                .expect(&format!("{}: failed to obtain X11 clipboard context", bin,));
+                .unwrap_or_else(|_| panic!("{}: failed to obtain X11 clipboard context", bin,));
             clip.store(
                 Clipboard::atom(&clip.setter.atoms),
                 clip.setter.atoms.utf8_string,
                 data,
             )
-            .expect(&format!(
+            .unwrap_or_else(|_| panic!(
                 "{}: failed to set clipboard contents through forked process",
                 bin,
             ));
@@ -126,16 +130,16 @@ fn copy_timeout_x11(data: &[u8], timeout: u64, report: bool) -> Result<()> {
                 clip.getter.atoms.utf8_string,
                 clip.getter.atoms.property,
             )
-            .expect(&format!(
+            .unwrap_or_else(|_| panic!(
                 "{}: failed to wait on new clipboard value in forked process",
                 bin,
             ));
 
             // Update cleared state, show notification
-            let _ = notify_cleared();
+            let _drop = notify_cleared();
 
             error::quit();
-        }
+        },
         pid => pid,
     };
 
@@ -145,27 +149,28 @@ fn copy_timeout_x11(data: &[u8], timeout: u64, report: bool) -> Result<()> {
         0 => {
             thread::sleep(Duration::from_secs(timeout));
 
-            // Determine if clipboard is already cleared, which is the case if the fork that set
-            // the clipboard has died
+            // Determine if clipboard is already cleared, which is the case if the fork that
+            // set the clipboard has died
             let cleared = unsafe {
                 let pid_search_status = libc::kill(setter_pid, 0);
-                let errno = *libc::__errno_location() as i32;
+                let errno = *libc::__errno_location();
                 pid_search_status == -1 && errno == libc::ESRCH
             };
 
             // Revert to previous clipboard contents if not yet cleared
             if !cleared {
                 let mut ctx = ClipboardContext::new()
-                    .expect(&format!("{}: failed to obtain X11 clipboard context", bin,));
-                ctx.set_contents(previous).expect(&format!(
+                    .unwrap_or_else(|_| panic!("{}: failed to obtain X11 clipboard context", bin));
+
+                ctx.set_contents(previous).unwrap_or_else(|_| panic!(
                     "{}: failed to revert clipboard contents through forked process",
                     bin,
                 ));
             }
 
             error::quit();
-        }
-        _pid => {}
+        },
+        _pid => {},
     }
 
     if report {
@@ -180,12 +185,14 @@ fn copy_timeout_x11(data: &[u8], timeout: u64, report: bool) -> Result<()> {
 
 /// Copy with timeout on Wayland using the wl-copy and wl-paste binaries.
 ///
-/// Keeps clipboard contents in clipboard even if application quits. Doesn't fuck with other
-/// clipboard contents and reverts back to previous contents once a timeout is reached.
+/// Keeps clipboard contents in clipboard even if application quits. Doesn't
+/// fuck with other clipboard contents and reverts back to previous contents
+/// once a timeout is reached.
 ///
-/// Forks & detaches two processes to set/keep clipboard contents and to drive the timeout.
+/// Forks & detaches two processes to set/keep clipboard contents and to drive
+/// the timeout.
 ///
-/// Based on: https://docs.rs/copypasta-ext/0.3.4/copypasta_ext/wayland_fork/index.html
+/// Based on: `<https://docs.rs/copypasta-ext/0.3.4/copypasta_ext/wayland_fork/index.html/>`
 #[cfg(all(
     unix,
     not(any(target_os = "macos", target_os = "android", target_os = "emscripten")),
@@ -210,29 +217,29 @@ fn copy_timeout_wayland_bin(data: &[u8], timeout: u64, report: bool) -> Result<(
             thread::sleep(Duration::from_secs(timeout));
 
             // Obtain new clipboard context, get current contents
-            let mut ctx = ClipboardContext::new().expect(&format!(
+            let mut ctx = ClipboardContext::new().unwrap_or_else(|_| panic!(
                 "{}: failed to obtain Wayland clipboard context",
                 bin,
             ));
-            let now = ctx.get_contents().expect(&format!(
+            let now = ctx.get_contents().unwrap_or_else(|_| panic!(
                 "{}: failed to get clipboard contents through forked process",
                 bin,
             ));
 
             // If clipboard contents didn't change, revert back to previous
             if data == now {
-                ctx.set_contents(previous).expect(&format!(
+                ctx.set_contents(previous).unwrap_or_else(|_| panic!(
                     "{}: failed to revert clipboard contents through forked process",
                     bin,
                 ));
 
                 // Update cleared state, show notification
-                let _ = notify_cleared();
+                let _drop = notify_cleared();
             }
 
             error::quit();
-        }
-        _pid => {}
+        },
+        _pid => {},
     }
 
     if report {
@@ -247,10 +254,12 @@ fn copy_timeout_wayland_bin(data: &[u8], timeout: u64, report: bool) -> Result<(
 
 /// Copy with timeout on X11 using xclip or xsel binaries.
 ///
-/// Keeps clipboard contents in clipboard even if application quits. Doesn't fuck with other
-/// clipboard contents and reverts back to previous contents once a timeout is reached.
+/// Keeps clipboard contents in clipboard even if application quits. Doesn't
+/// fuck with other clipboard contents and reverts back to previous contents
+/// once a timeout is reached.
 ///
-/// Forks & detaches two processes to set/keep clipboard contents and to drive the timeout.
+/// Forks & detaches two processes to set/keep clipboard contents and to drive
+/// the timeout.
 ///
 /// Based on: https://docs.rs/copypasta-ext/0.3.4/copypasta_ext/x11_fork/index.html
 #[cfg(all(
@@ -297,8 +306,8 @@ fn copy_timeout_x11_bin(data: &[u8], timeout: u64, report: bool) -> Result<()> {
             }
 
             error::quit();
-        }
-        _pid => {}
+        },
+        _pid => {},
     }
 
     if report {
@@ -313,10 +322,12 @@ fn copy_timeout_x11_bin(data: &[u8], timeout: u64, report: bool) -> Result<()> {
 
 /// Copy with timeout on macOS.
 ///
-/// Keeps clipboard contents in clipboard even if application quits. Doesn't fuck with other
-/// clipboard contents and reverts back to previous contents once a timeout is reached.
+/// Keeps clipboard contents in clipboard even if application quits. Doesn't
+/// fuck with other clipboard contents and reverts back to previous contents
+/// once a timeout is reached.
 ///
-/// Spawns and disowns a process to manage reverting the clipboard after timeout.
+/// Spawns and disowns a process to manage reverting the clipboard after
+/// timeout.
 #[cfg(target_os = "macos")]
 fn copy_timeout_macos(data: &[u8], timeout: u64, report: bool) -> Result<()> {
     copy_timeout_process(data, timeout, report)
@@ -324,10 +335,12 @@ fn copy_timeout_macos(data: &[u8], timeout: u64, report: bool) -> Result<()> {
 
 /// Copy with timeout on Windows.
 ///
-/// Keeps clipboard contents in clipboard even if application quits. Doesn't fuck with other
-/// clipboard contents and reverts back to previous contents once a timeout is reached.
+/// Keeps clipboard contents in clipboard even if application quits. Doesn't
+/// fuck with other clipboard contents and reverts back to previous contents
+/// once a timeout is reached.
 ///
-/// Spawns and disowns a process to manage reverting the clipboard after timeout.
+/// Spawns and disowns a process to manage reverting the clipboard after
+/// timeout.
 #[cfg(target_os = "windows")]
 fn copy_timeout_windows(data: &[u8], timeout: u64, report: bool) -> Result<()> {
     copy_timeout_process(data, timeout, report)
@@ -335,9 +348,11 @@ fn copy_timeout_windows(data: &[u8], timeout: u64, report: bool) -> Result<()> {
 
 /// Copy with timeout using subprocess.
 ///
-/// Copy with timeout. Spawn and disown a process to manage reverting the clipboard contents.
+/// Copy with timeout. Spawn and disown a process to manage reverting the
+/// clipboard contents.
 ///
-/// Falls back to blocking method if it fails to determine the current executable path.
+/// Falls back to blocking method if it fails to determine the current
+/// executable path.
 #[allow(unused)]
 fn copy_timeout_process(data: &[u8], timeout: u64, report: bool) -> Result<()> {
     // Find current exe path, or fall back to basic timeout copy
@@ -353,7 +368,8 @@ fn copy_timeout_process(data: &[u8], timeout: u64, report: bool) -> Result<()> {
     let previous = get().unwrap_or_else(|_| "".into());
     set(data)?;
 
-    // Spawn & disown background process to revert clipboard, send previous contents to it
+    // Spawn & disown background process to revert clipboard, send previous contents
+    // to it
     let process = Command::new(current_exe)
         .arg("internal")
         .arg("clip-revert")
@@ -395,7 +411,7 @@ fn copy_timeout_blocking(data: &[u8], timeout: u64, report: bool) -> Result<()> 
     thread::sleep(Duration::from_secs(timeout));
 
     ctx.set_contents("".into()).map_err(Err::Clipboard)?;
-    let _ = notify_cleared();
+    let _drop = notify_cleared();
 
     Ok(())
 }
@@ -456,8 +472,8 @@ pub(crate) fn notify_cleared() -> Result<()> {
 
 /// Check if running on Wayland.
 ///
-/// This checks at runtime whether the user is running the Wayland display server. This is a best
-/// effort, and may not be reliable.
+/// This checks at runtime whether the user is running the Wayland display
+/// server. This is a best effort, and may not be reliable.
 #[cfg(all(
     unix,
     not(any(target_os = "macos", target_os = "android", target_os = "emscripten")),

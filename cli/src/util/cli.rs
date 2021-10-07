@@ -84,7 +84,9 @@ pub(crate) fn prompt_yes(msg: &str, def: Option<bool>, main_matcher: &MainMatche
 
     // Assume the default if the answer is empty
     if answer.is_empty() && def.is_some() {
-        return def.unwrap();
+        if let Some(d) = def {
+            return d;
+        }
     }
 
     // Derive a boolean and return

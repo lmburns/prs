@@ -15,8 +15,7 @@ edition = "2018"
 gitlab = { repository = "timvisee/prs", branch = "master" }
 
 [features]
-# TODO: remove age
-default = ["backend-gnupg-bin", "backend-age", "otp"]
+default = ["backend-gnupg-bin", "otp"]
 
 ### Regular features
 

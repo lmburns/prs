@@ -8,6 +8,8 @@ CI := if env_var_or_default("CI", "1") == "0" { "--color=never" } else { "--colo
 rl := if env_var_or_default("rl", "0") == "1" { "RUST_LOG=debug" } else { "" }
 # export RUST_LOG := "debug"
 
+# git describe --always --abbrev=40 --dirty
+
 bt := '0'
 export RUST_BACKTRACE := bt
 

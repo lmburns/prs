@@ -173,6 +173,7 @@ pub struct OTPUri {
 }
 
 /// OTP representation with all its options
+#[allow(dead_code)]
 #[derive(Debug, Clone, Builder, Default)]
 #[builder(default)]
 pub struct OneTimePassword {
