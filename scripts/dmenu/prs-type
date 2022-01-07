@@ -1,5 +1,9 @@
 #!/bin/bash
 
-secret=$(prs list --list | dmenu -p "secret" -i)
+secret=$(\
+  prs list --list \
+    | dmenu \
+      -p "secret" \
+      -i)
 
-[[ ! -z "$secret" ]] && xdotool type "$(prs show "$secret" --password --no-interact --quiet)"
+[[ -n "$secret" ]] && xdotool type "$(prs show "$secret" --password --no-interact --quiet)"

@@ -1,4 +1,5 @@
 set shell := ["zsh", "-euyc"]
+set dotenv-load := true
 # F
 
 # Doesn't work??, Get this to be a just variable

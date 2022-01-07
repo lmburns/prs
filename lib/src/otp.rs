@@ -1,5 +1,5 @@
 use crate::{crypto::IsContext, store::Store, types::Plaintext, OTP_DEFUALT_FILE};
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use colored::Colorize;
 use data_encoding::{DecodeError, BASE32_NOPAD};
 use derive_builder::Builder;
@@ -107,7 +107,7 @@ pub enum HashFunction {
 impl HashFunction {
     /// Convert `str` to variant (default is `SHA1`)
     pub fn from_str(hash: &str) -> HashFunction {
-        match hash.trim().to_ascii_lowercase().as_str() {
+        match hash.to_ascii_lowercase().trim() {
             "sha256" | "256" => HashFunction::Sha256,
             "sha384" | "384" => HashFunction::Sha384,
             "sha512" | "512" => HashFunction::Sha512,
@@ -342,7 +342,7 @@ impl OtpFile {
                 .map_err(OtpError::Decrypt)?;
 
             serde_json::from_slice(plaintext.unsecure_ref())
-                .map_err(|e| anyhow!(OtpError::SerDeserialization(e)))
+                .map_err(|e| OtpError::SerDeserialization(e).into())
         }
     }
 
@@ -361,6 +361,7 @@ impl OtpFile {
         self.0.keys()
     }
 
+    /// Return the length of the keys
     pub fn len(&self) -> usize {
         self.0.keys().len()
     }
@@ -400,15 +401,15 @@ pub fn parse_base32(key: &str) -> Result<Vec<u8>> {
         })?)
 }
 
+/// Check whether the user input matches the URI schema
 pub fn has_uri(uri: &str) -> bool {
     if !URI_RE.is_match(uri) {
         return false;
     }
-    uri_secret(uri).map_or(false, |s| {
-        parse_base32(&s).is_ok()
-    })
+    uri_secret(uri).map_or(false, |s| parse_base32(&s).is_ok())
 }
 
+/// Get the secret key of the URI
 pub fn uri_secret(uri: &str) -> Result<String> {
     Ok(URI_RE
         .captures(uri)
@@ -419,6 +420,7 @@ pub fn uri_secret(uri: &str) -> Result<String> {
         .to_owned())
 }
 
+/// Get the issuer of the URI
 pub fn uri_issuer(uri: &str) -> Result<String> {
     Ok(URI_RE
         .captures(uri)
@@ -429,6 +431,7 @@ pub fn uri_issuer(uri: &str) -> Result<String> {
         .to_owned())
 }
 
+/// Get the URI refresh period (num of seconds) from the given URI
 pub fn uri_period(uri: &str) -> Result<u64> {
     Ok(URI_RE
         .captures(uri)
@@ -442,6 +445,7 @@ pub fn uri_period(uri: &str) -> Result<u64> {
         }))
 }
 
+/// Get the URI number of digits from the given URI
 pub fn uri_digits(uri: &str) -> Result<usize> {
     Ok(URI_RE
         .captures(uri)
@@ -455,6 +459,11 @@ pub fn uri_digits(uri: &str) -> Result<usize> {
         }))
 }
 
+/// Get the URI algorithm from the given URI
+//   - Sha1
+//   - Sha256
+//   - Sha384
+//   - Sha512
 pub fn uri_algorithm(uri: &str) -> Result<HashFunction> {
     Ok(URI_RE
         .captures(uri)
@@ -463,6 +472,7 @@ pub fn uri_algorithm(uri: &str) -> Result<HashFunction> {
         .map_or(HashFunction::Sha1, |f| HashFunction::from_str(f.as_str())))
 }
 
+/// Get the URI type from the given URI
 pub fn uri_type(uri: &str) -> Result<bool> {
     Ok(URI_RE
         .captures(uri)

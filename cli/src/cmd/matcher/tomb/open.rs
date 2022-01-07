@@ -15,6 +15,7 @@ impl OpenMatcher<'_> {
         let time = self.matches.value_of("timer").unwrap_or("0");
         match crate::util::time::parse_duration(time) {
             Ok(0) => None,
+            #[allow(clippy::cast_possible_truncation)]
             Ok(time) => Some(time as u32),
             Err(err) => quit_error(&anyhow!(err), ErrorHints::default()),
         }

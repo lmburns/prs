@@ -12,12 +12,14 @@
 
 # TODO:
 * [`pass-vera`](https://github.com/lmburns/pass-vera.git) implementation
+* Add `find` subcommand
 * Support `pwned`
 * Add attributes from CLI similar to [`knox`](https://github.com/apognu/knox.git)
 * Add QRCode for `otp`
 * Parse URI
 * Add an otp attribute to file if it has one
   * `show`, `remove`
+* Core dump occasionally when viewing OTP on linux
 
 ## Fork
 * Support `TOTP` codes

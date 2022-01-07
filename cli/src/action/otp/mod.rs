@@ -1,3 +1,4 @@
+// TODO: Add option to not display otp to screen and only copy
 pub(crate) mod add;
 pub(crate) mod list;
 pub(crate) mod remove;

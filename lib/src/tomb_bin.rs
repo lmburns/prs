@@ -3,6 +3,9 @@ use std::ffi::OsStr;
 use std::path::Path;
 use std::process::{Command, ExitStatus};
 
+// TODO: propagate tomb errors
+// TODO: add steghide option
+
 use anyhow::Result;
 use thiserror::Error;
 
@@ -201,7 +204,7 @@ fn cmd_assert_status(status: ExitStatus) -> Result<()> {
 }
 
 /// Tomb command settings.
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct TombSettings {
     /// Run in quiet (-q) mode.
     pub quiet: bool,

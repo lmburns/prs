@@ -1,5 +1,9 @@
 #!/bin/bash
 
-secret=$(prs list --list | dmenu -p "secret" -i)
+secret=$(\
+  prs list --list \
+    | dmenu \
+      -p "secret" \
+      -i)
 
-[[ ! -z "$secret" ]] && prs copy "$secret" --no-interact
+[[ -n "$secret" ]] && prs copy "$secret" --no-interact

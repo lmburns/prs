@@ -1,16 +1,15 @@
 //! Password store Tomb functionality.
 
-use std::env;
-use std::os::linux::fs::MetadataExt;
-use std::path::{Path, PathBuf};
+use std::{
+    env,
+    os::linux::fs::MetadataExt,
+    path::{Path, PathBuf},
+};
 
 use anyhow::{anyhow, Result};
 use thiserror::Error;
 
-use crate::crypto::Proto;
-use crate::tomb_bin::TombSettings;
-use crate::util;
-use crate::{systemd_bin, tomb_bin, Key, Store};
+use crate::{crypto::Proto, systemd_bin, tomb_bin, tomb_bin::TombSettings, util, Key, Store};
 
 /// Default time after which to automatically close the password tomb.
 pub const TOMB_AUTO_CLOSE_SEC: u32 = 5 * 60;
@@ -22,6 +21,7 @@ pub const TOMB_FILE_SUFFIX: &str = ".tomb";
 pub const TOMB_KEY_FILE_SUFFIX: &str = ".tomb.key";
 
 /// Tomb helper for given store.
+#[derive(Debug)]
 pub struct Tomb<'a> {
     /// The store.
     store: &'a Store,
@@ -59,7 +59,8 @@ impl<'a> Tomb<'a> {
 
     /// Open the tomb.
     ///
-    /// This will keep the tomb open until it is manually closed. See `start_timer()`.
+    /// This will keep the tomb open until it is manually closed. See
+    /// `start_timer()`.
     ///
     /// On success this may return a list with soft-fail errors.
     pub fn open(&self) -> Result<Vec<Err>> {
@@ -84,7 +85,8 @@ impl<'a> Tomb<'a> {
 
     /// Resize the tomb.
     ///
-    /// The Tomb must not be mounted and the size must be larger than the current.
+    /// The Tomb must not be mounted and the size must be larger than the
+    /// current.
     pub fn resize(&self, mbs: u32) -> Result<()> {
         let tomb = self.find_tomb_path()?;
         let key = self.find_tomb_key_path()?;
@@ -148,26 +150,21 @@ impl<'a> Tomb<'a> {
         // Spawn timer to automatically close tomb
         // TODO: better method to find current exe path
         // TODO: do not hardcode exe, command and store path
-        systemd_bin::systemd_cmd_timer(
-            sec,
-            "prs tomb close timer",
-            &unit,
-            &[
-                std::env::current_exe()
-                    .expect("failed to determine current exe")
-                    .to_str()
-                    .expect("current exe contains invalid UTF-8"),
-                "tomb",
-                "--store",
-                self.store
-                    .root
-                    .to_str()
-                    .expect("password store path contains invalid UTF-8"),
-                "close",
-                "--try",
-                "--verbose",
-            ],
-        )
+        systemd_bin::systemd_cmd_timer(sec, "prs tomb close timer", &unit, &[
+            std::env::current_exe()
+                .expect("failed to determine current exe")
+                .to_str()
+                .expect("current exe contains invalid UTF-8"),
+            "tomb",
+            "--store",
+            self.store
+                .root
+                .to_str()
+                .expect("password store path contains invalid UTF-8"),
+            "close",
+            "--try",
+            "--verbose",
+        ])
         .map_err(Err::AutoCloseTimer)?;
 
         Ok(())
@@ -201,7 +198,8 @@ impl<'a> Tomb<'a> {
 
     /// Finalize the Tomb.
     pub fn finalize(&self) -> Result<()> {
-        // This is currently just a placeholder for special closing functionality in the future
+        // This is currently just a placeholder for special closing functionality in the
+        // future
         Ok(())
     }
 
@@ -263,14 +261,16 @@ impl<'a> Tomb<'a> {
     /// Check whether the password store is a tomb.
     ///
     /// This guesses based on existence of some files.
-    /// If this returns false you may assume this password store doesn't use a tomb.
+    /// If this returns false you may assume this password store doesn't use a
+    /// tomb.
     pub fn is_tomb(&self) -> bool {
         find_tomb_path(&self.store.root).is_some()
     }
 
     /// Check whether the password store is currently opened.
     ///
-    /// This guesses based on mount information for the password store directory.
+    /// This guesses based on mount information for the password store
+    /// directory.
     pub fn is_open(&self) -> Result<bool> {
         // Password store directory must exist
         if !self.store.root.is_dir() {
@@ -291,8 +291,8 @@ impl<'a> Tomb<'a> {
 
     /// Fetch Tomb size statistics.
     ///
-    /// This attempts to gather password store and tomb size statistics, whether this store is a
-    /// tomb or not.
+    /// This attempts to gather password store and tomb size statistics, whether
+    /// this store is a tomb or not.
     ///
     /// This is expensive.
     pub fn fetch_size_stats(&self) -> Result<TombSize> {
@@ -307,9 +307,9 @@ impl<'a> Tomb<'a> {
                 let tomb_file = tomb_path.metadata().map(|m| m.len()).ok();
 
                 Ok(TombSize { store, tomb_file })
-            }
+            },
             Err(_) => Ok(TombSize {
-                store: util::fs::dir_size(&self.store.root).ok(),
+                store:     util::fs::dir_size(&self.store.root).ok(),
                 tomb_file: None,
             }),
         }
@@ -433,10 +433,7 @@ fn tomb_key_paths(root: &Path) -> Vec<PathBuf> {
 
     // Path from pass-tomb in store parent and in home
     if let Some(parent) = parent {
-        paths.push(
-            parent
-                .join(format!(".password{}", TOMB_KEY_FILE_SUFFIX)),
-        );
+        paths.push(parent.join(format!(".password{}", TOMB_KEY_FILE_SUFFIX)));
     }
     paths.push(format!("~/.password{}", TOMB_KEY_FILE_SUFFIX).into());
 

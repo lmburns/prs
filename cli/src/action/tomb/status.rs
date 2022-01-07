@@ -52,6 +52,7 @@ impl<'a> Status<'a> {
 
         let has_timer = tomb.has_timer().map_err(Err::Status)?;
         let tomb_path = tomb.find_tomb_path().unwrap();
+        // TODO: fix error when no key present
         let tomb_key_path = tomb.find_tomb_key_path().unwrap();
         let sizes = tomb.fetch_size_stats().map_err(Err::Size)?;
 
