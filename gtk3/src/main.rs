@@ -90,7 +90,7 @@ fn build_ui(application: &gtk::Application) {
             );
             application.quit();
             return;
-        }
+        },
     };
     #[cfg(all(feature = "tomb", target_os = "linux"))]
     let tomb = store.tomb(false, false, true);
@@ -197,7 +197,7 @@ fn selected_entry(
                 Some(&window),
             );
             return;
-        }
+        },
         FindSecret::Many(secrets) => {
             error_dialog(
                 &format!(
@@ -207,7 +207,7 @@ fn selected_entry(
                 Some(&window),
             );
             return;
-        }
+        },
     };
 
     selected(secret, window, input);
@@ -232,7 +232,7 @@ fn selected(secret: Secret, window: gtk::ApplicationWindow, input: gtk::SearchEn
             );
             window.close();
             return;
-        }
+        },
     };
 
     let text = plaintext.unsecure_to_str().unwrap();
@@ -289,7 +289,8 @@ fn copy(text: String, timeout: u32) {
         let previous = previous.clone();
         let text = text.clone();
 
-        // Obtain current clipboard contents, change to previous if secret is still in it
+        // Obtain current clipboard contents, change to previous if secret is still in
+        // it
         clipboard.request_text(move |clipboard, current| {
             if current != Some(&text) {
                 return;

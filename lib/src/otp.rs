@@ -1,3 +1,5 @@
+//! One-time-password library
+
 use crate::{crypto::IsContext, store::Store, types::Plaintext, OTP_DEFUALT_FILE};
 use anyhow::Result;
 use colored::Colorize;
@@ -17,50 +19,7 @@ use std::{
 use strum_macros::Display;
 use thiserror::Error;
 
-#[derive(Debug, Error)]
-pub enum OtpError {
-    #[error("Decoding failed for key '{}': {}", key, cause)]
-    KeyDecode {
-        key:   String,
-        cause: Box<DecodeError>,
-    },
-
-    #[error("failure to write to file: {0}")]
-    WriteFile(#[source] io::Error),
-
-    #[error("failure to serialize/deserialize file to string: {0}")]
-    SerDeserialization(#[from] serde_json::Error),
-
-    /// Invalid time
-    #[error("invalid time provided")]
-    InvalidTimeError(#[source] SystemTimeError),
-
-    /// Invalid digest
-    #[error("invalid digest provided: {:?}", _0)]
-    InvalidDigest(Vec<u8>),
-
-    #[error("failed to write decrypted unserialized file")]
-    Write(#[source] std::io::Error),
-
-    #[error("failed to decrypt otp file")]
-    Decrypt(#[source] anyhow::Error),
-
-    #[error("failed to encrypt otp file")]
-    Encrypt(#[source] anyhow::Error),
-
-    #[error("failed to read from file")]
-    ReadFile(#[source] std::io::Error),
-
-    #[error("failed to get regex captures")]
-    RegexCaptures,
-
-    #[error("failed to get {0} captures")]
-    RegexCaptureName(String),
-
-    #[error("failed parse integer")]
-    ParseInt(#[source] std::num::ParseIntError),
-}
-
+/// Regular expression to capture a URI for the OTP
 static URI_RE: Lazy<Regex> = Lazy::new(|| {
     Regex::new(
         r"(?x)
@@ -77,10 +36,16 @@ static URI_RE: Lazy<Regex> = Lazy::new(|| {
     .unwrap()
 });
 
+/// The type of one-time-password
 #[derive(Debug, Copy, Clone, PartialEq, Default, Display)]
 pub enum OTPType {
+    /// [HMAC-One-Time-Password Algorithm][1]
+    /// [1]: http://en.wikipedia.org/wiki/HMAC-based_One-time_Password_Algorithm
     #[strum(serialize = "hotp")]
     HOTP,
+
+    /// [Time-based One-Time-Password Algorithm][1]
+    /// [1]: http://en.wikipedia.org/wiki/Time-based_One-time_Password_Algorithm
     #[default]
     #[strum(serialize = "totp")]
     TOTP,
@@ -93,12 +58,15 @@ pub enum HashFunction {
     #[strum(serialize = "sha1")]
     #[serde(rename = "SHA1")]
     Sha1,
+
     #[strum(serialize = "sha256")]
     #[serde(rename = "SHA256")]
     Sha256,
+
     #[strum(serialize = "sha384")]
     #[serde(rename = "SHA384")]
     Sha384,
+
     #[strum(serialize = "sha512")]
     #[serde(rename = "SHA512")]
     Sha512,
@@ -106,22 +74,27 @@ pub enum HashFunction {
 
 impl HashFunction {
     /// Convert `str` to variant (default is `SHA1`)
-    pub fn from_str(hash: &str) -> HashFunction {
+    ///
+    /// Would be the same as the standard [`FromStr`](std::str::FromStr);
+    /// however, this is infallible
+    #[must_use]
+    #[allow(clippy::should_implement_trait)]
+    pub fn from_str(hash: &str) -> Self {
         match hash.to_ascii_lowercase().trim() {
-            "sha256" | "256" => HashFunction::Sha256,
-            "sha384" | "384" => HashFunction::Sha384,
-            "sha512" | "512" => HashFunction::Sha512,
-            _ => HashFunction::Sha1,
+            "sha256" | "256" => Self::Sha256,
+            "sha384" | "384" => Self::Sha384,
+            "sha512" | "512" => Self::Sha512,
+            _ => Self::Sha1,
         }
     }
 
     // /// Get hash function name
     // pub fn name(self) -> &'static str {
     //     match self {
-    //         HashFunction::Sha1 => "sha1",
-    //         HashFunction::Sha256 => "sha256",
-    //         HashFunction::Sha384 => "sha384",
-    //         HashFunction::Sha512 => "sha512",
+    //         Self::Sha1 => "sha1",
+    //         Self::Sha256 => "sha256",
+    //         Self::Sha384 => "sha384",
+    //         Self::Sha512 => "sha512",
     //     }
     // }
 }
@@ -134,21 +107,32 @@ impl HashFunction {
 
 // TODO: use or delete
 
+/// The length of the `OTP`
 #[derive(Debug, Copy, Clone, Default, Display, PartialEq)]
 pub enum OTPLength {
+    /// Six characters in length
     #[default]
     #[strum(serialize = "6")]
     Six = 6,
+
+    /// Eight characters in length
     #[strum(serialize = "8")]
     Eight = 8,
 }
 
-// otpauth://totp/GitHub:username?secret=BASE32&issuer=GitHub
+/// The label of the `OTP`
 #[derive(Debug, Builder, Default, Clone)]
 #[builder(default)]
 pub struct OTPLabel {
+    /// Issuer of the `OTP`
+    ///
+    /// otpauth://totp/*GitHub*:username?secret=BASE32&issuer=GitHub
     #[builder(default = "None")]
-    pub issuer:      Option<String>,
+    pub issuer: Option<String>,
+
+    /// Account name of the `OTP`
+    ///
+    /// otpauth://totp/GitHub:*username*?secret=BASE32&issuer=GitHub
     #[builder(default = "String::new()")]
     pub accountname: String,
 }
@@ -479,4 +463,50 @@ pub fn uri_type(uri: &str) -> Result<bool> {
         .ok_or(OtpError::RegexCaptures)?
         .name("type")
         .map_or(true, |p| p.as_str() == "totp"))
+}
+
+/// Errors dealing with one-time-password operations
+#[derive(Debug, Error)]
+#[allow(clippy::module_name_repetitions)]
+pub enum OtpError {
+    #[error("Decoding failed for key '{}': {}", key, cause)]
+    KeyDecode {
+        key:   String,
+        cause: Box<DecodeError>,
+    },
+
+    #[error("failure to write to file: {0}")]
+    WriteFile(#[source] io::Error),
+
+    #[error("failure to serialize/deserialize file to string: {0}")]
+    SerDeserialization(#[from] serde_json::Error),
+
+    /// Invalid time
+    #[error("invalid time provided")]
+    InvalidTimeError(#[source] SystemTimeError),
+
+    /// Invalid digest
+    #[error("invalid digest provided: {:?}", _0)]
+    InvalidDigest(Vec<u8>),
+
+    #[error("failed to write decrypted unserialized file")]
+    Write(#[source] std::io::Error),
+
+    #[error("failed to decrypt otp file")]
+    Decrypt(#[source] anyhow::Error),
+
+    #[error("failed to encrypt otp file")]
+    Encrypt(#[source] anyhow::Error),
+
+    #[error("failed to read from file")]
+    ReadFile(#[source] std::io::Error),
+
+    #[error("failed to get regex captures")]
+    RegexCaptures,
+
+    #[error("failed to get {0} captures")]
+    RegexCaptureName(String),
+
+    #[error("failed parse integer")]
+    ParseInt(#[source] std::num::ParseIntError),
 }

@@ -31,7 +31,7 @@ pub(crate) trait CmdArgFlag: CmdArg {
     /// Check whether the argument is present in the given matches.
     #[allow(single_use_lifetimes)]
     #[allow(unused_lifetimes)]
-    fn is_present<'a>(matches: &ArgMatches) -> bool {
+    fn is_present(matches: &ArgMatches) -> bool {
         matches.is_present(Self::name())
     }
 }
@@ -45,19 +45,19 @@ pub(crate) trait CmdArgOption<'a>: CmdArg {
     /// Get the argument value.
     #[allow(single_use_lifetimes)]
     #[allow(unused_lifetimes)]
-    fn value<'b: 'a>(matches: &'a ArgMatches) -> Self::Value;
+    fn value<'b: 'a>(matches: &'b ArgMatches) -> Self::Value;
 
     /// Get the raw argument value, as a string reference.
     #[allow(single_use_lifetimes)]
     #[allow(unused_lifetimes)]
-    fn value_raw<'b: 'a>(matches: &'a ArgMatches) -> Option<&'a str> {
+    fn value_raw<'b: 'a>(matches: &'b ArgMatches) -> Option<&'b str> {
         matches.value_of(Self::name())
     }
 
     /// Get the raw argument values, as a string reference.
     #[allow(single_use_lifetimes)]
     #[allow(unused_lifetimes)]
-    fn values_raw<'b: 'a>(matches: &'a ArgMatches) -> Option<clap::Values<'a>> {
+    fn values_raw<'b: 'a>(matches: &'b ArgMatches) -> Option<clap::Values<'b>> {
         matches.values_of(Self::name())
     }
 }

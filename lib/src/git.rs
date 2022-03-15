@@ -1,7 +1,13 @@
-use std::ffi::OsStr;
-use std::path::Path;
-use std::process::{Command, ExitStatus, Output};
-use std::time::SystemTime;
+//! Interaction with `git`
+
+#![allow(clippy::module_name_repetitions)]
+
+use std::{
+    ffi::OsStr,
+    path::Path,
+    process::{Command, ExitStatus, Output},
+    time::SystemTime,
+};
 
 use anyhow::Result;
 use thiserror::Error;
@@ -9,26 +15,28 @@ use thiserror::Error;
 use crate::util;
 
 // Re-exports
-pub use git_state::{git_state, RepositoryState};
+pub(crate) use git_state::{git_state, RepositoryState};
 
 /// Binary name.
 #[cfg(not(windows))]
-pub const BIN_NAME: &str = "git";
+pub(crate) const BIN_NAME: &str = "git";
+
+/// Binary name.
 #[cfg(windows)]
-pub const BIN_NAME: &str = "git.exe";
+pub(crate) const BIN_NAME: &str = "git.exe";
 
 /// The git FETCH_HEAD file.
 const GIT_FETCH_HEAD_FILE: &str = ".git/FETCH_HEAD";
 
 /// Invoke git init.
-pub fn git_init(repo: &Path) -> Result<()> {
+pub(crate) fn git_init(repo: &Path) -> Result<()> {
     git(repo, &["init", "-q"], false)
 }
 
 /// Invoke git clone.
 ///
 /// Shows progress unless `quiet` is set.
-pub fn git_clone(repo: &Path, url: &str, path: &str, quiet: bool) -> Result<()> {
+pub(crate) fn git_clone(repo: &Path, url: &str, path: &str, quiet: bool) -> Result<()> {
     let mut args = vec!["clone", "-q"];
     if !quiet {
         args.push("--progress");
@@ -38,12 +46,12 @@ pub fn git_clone(repo: &Path, url: &str, path: &str, quiet: bool) -> Result<()> 
 }
 
 /// Git stage all files and changes.
-pub fn git_add_all(repo: &Path) -> Result<()> {
+pub(crate) fn git_add_all(repo: &Path) -> Result<()> {
     git(repo, &["add", "."], false)
 }
 
 /// Invoke git commit.
-pub fn git_commit(repo: &Path, msg: &str, commit_empty: bool) -> Result<()> {
+pub(crate) fn git_commit(repo: &Path, msg: &str, commit_empty: bool) -> Result<()> {
     // Quit if no changes and we don't allow empty commit
     if !commit_empty && !git_has_changes(repo)? {
         return Ok(());
@@ -57,7 +65,11 @@ pub fn git_commit(repo: &Path, msg: &str, commit_empty: bool) -> Result<()> {
 }
 
 /// Invoke git push.
-pub fn git_push(repo: &Path, set_branch: Option<&str>, set_upstream: Option<&str>) -> Result<()> {
+pub(crate) fn git_push(
+    repo: &Path,
+    set_branch: Option<&str>,
+    set_upstream: Option<&str>,
+) -> Result<()> {
     // TODO: do not set -q flag if in verbose mode?
     let mut args = vec!["push", "-q"];
     if let Some(upstream) = set_upstream {
@@ -66,17 +78,18 @@ pub fn git_push(repo: &Path, set_branch: Option<&str>, set_upstream: Option<&str
     if let Some(branch) = set_branch {
         args.push(branch);
     }
+
     git(repo, &args, true)
 }
 
 /// Invoke git pull.
-pub fn git_pull(repo: &Path) -> Result<()> {
+pub(crate) fn git_pull(repo: &Path) -> Result<()> {
     // TODO: do not set -q flag if in verbose mode?
     git(repo, &["pull", "-q"], true)
 }
 
 /// Invoke git fetch.
-pub fn git_fetch(repo: &Path, reference: Option<&str>) -> Result<()> {
+pub(crate) fn git_fetch(repo: &Path, reference: Option<&str>) -> Result<()> {
     // TODO: do not set -q flag if in verbose mode?
     let mut args = vec!["fetch", "-q"];
     if let Some(reference) = reference {
@@ -86,40 +99,40 @@ pub fn git_fetch(repo: &Path, reference: Option<&str>) -> Result<()> {
 }
 
 /// Check if repository has (staged/unstaged) changes.
-pub fn git_has_changes(repo: &Path) -> Result<bool> {
+pub(crate) fn git_has_changes(repo: &Path) -> Result<bool> {
     Ok(!git_stdout_ok(repo, &["status", "-s"], false)?.is_empty())
 }
 
 /// Check if repository has remote configured.
-pub fn git_has_remote(repo: &Path) -> Result<bool> {
+pub(crate) fn git_has_remote(repo: &Path) -> Result<bool> {
     Ok(!git_stdout_ok(repo, &["remote"], false)?.is_empty())
 }
 
 /// Git get remote list.
-pub fn git_remote(repo: &Path) -> Result<Vec<String>> {
+pub(crate) fn git_remote(repo: &Path) -> Result<Vec<String>> {
     Ok(git_stdout_ok(repo, &["remote"], false)?
         .lines()
-        .map(|r| r.into())
+        .map(Into::into)
         .collect())
 }
 
 /// Get get remote URL.
-pub fn git_remote_get_url(repo: &Path, remote: &str) -> Result<String> {
+pub(crate) fn git_remote_get_url(repo: &Path, remote: &str) -> Result<String> {
     git_stdout_ok(repo, &["remote", "get-url", remote], false)
 }
 
 /// Get add remote URL.
-pub fn git_remote_add(repo: &Path, remote: &str, url: &str) -> Result<()> {
+pub(crate) fn git_remote_add(repo: &Path, remote: &str, url: &str) -> Result<()> {
     git(repo, &["remote", "add", remote, url], false)
 }
 
 /// Get remove remote URL.
-pub fn git_remote_remove(repo: &Path, remote: &str) -> Result<()> {
+pub(crate) fn git_remote_remove(repo: &Path, remote: &str) -> Result<()> {
     git(repo, &["remote", "remove", remote], false)
 }
 
 /// Get the current git branch name.
-pub fn git_current_branch(repo: &Path) -> Result<String> {
+pub(crate) fn git_current_branch(repo: &Path) -> Result<String> {
     let branch = git_stdout_ok(repo, &["rev-parse", "--abbrev-ref", "HEAD"], false)?;
     assert!(!branch.is_empty(), "git returned empty branch name");
     assert!(!branch.contains('\n'), "git returned multiple branches");
@@ -127,7 +140,7 @@ pub fn git_current_branch(repo: &Path) -> Result<String> {
 }
 
 /// List remote git branches.
-pub fn git_branch_remote(repo: &Path) -> Result<Vec<String>> {
+pub(crate) fn git_branch_remote(repo: &Path) -> Result<Vec<String>> {
     Ok(git_stdout_ok(repo, &["branch", "-r", "--no-color"], false)?
         .lines()
         .map(|r| {
@@ -143,7 +156,10 @@ pub fn git_branch_remote(repo: &Path) -> Result<Vec<String>> {
 /// Get upstream branch for given branch if there is any.
 ///
 /// If there is none, `None` is returned.
-pub fn git_branch_upstream<S: AsRef<str>>(repo: &Path, reference: S) -> Result<Option<String>> {
+pub(crate) fn git_branch_upstream<S: AsRef<str>>(
+    repo: &Path,
+    reference: S,
+) -> Result<Option<String>> {
     // Invoke command
     let output = git_output(
         repo,
@@ -181,7 +197,11 @@ pub fn git_branch_upstream<S: AsRef<str>>(repo: &Path, reference: S) -> Result<O
 }
 
 /// Set upstream branch for the given branch.
-pub fn git_branch_set_upstream(repo: &Path, reference: Option<&str>, upstream: &str) -> Result<()> {
+pub(crate) fn git_branch_set_upstream(
+    repo: &Path,
+    reference: Option<&str>,
+    upstream: &str,
+) -> Result<()> {
     let mut args = vec!["branch", "--set-upstream-to", upstream];
     if let Some(reference) = reference {
         args.push(reference);
@@ -190,7 +210,7 @@ pub fn git_branch_set_upstream(repo: &Path, reference: Option<&str>, upstream: &
 }
 
 /// Get the hash of a reference.
-pub fn git_ref_hash<S: AsRef<str>>(repo: &Path, reference: S) -> Result<String> {
+pub(crate) fn git_ref_hash<S: AsRef<str>>(repo: &Path, reference: S) -> Result<String> {
     let hash = git_stdout_ok(repo, &["rev-parse", reference.as_ref()], false)?;
     assert_eq!(hash.len(), 40, "git returned invalid hash");
     Ok(hash)
@@ -198,7 +218,7 @@ pub fn git_ref_hash<S: AsRef<str>>(repo: &Path, reference: S) -> Result<String> 
 
 /// Get system time the repository was last pulled.
 /// See: https://stackoverflow.com/a/9229377/1000145 (stat -c %Y .git/FETCH_HEAD)
-pub fn git_last_pull_time(repo: &Path) -> Result<SystemTime> {
+pub(crate) fn git_last_pull_time(repo: &Path) -> Result<SystemTime> {
     Ok(repo
         .join(GIT_FETCH_HEAD_FILE)
         .metadata()
@@ -281,8 +301,9 @@ fn cmd_assert_status(status: ExitStatus) -> Result<()> {
     Ok(())
 }
 
+/// Errors relating to `git` commands
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to complete git operation")]
     Other(#[source] std::io::Error),
 
