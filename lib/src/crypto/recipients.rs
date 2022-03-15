@@ -22,12 +22,14 @@ impl Recipients {
     /// # Panics
     ///
     /// Panics if keys use multiple protocols.
+    #[must_use]
     pub fn from(keys: Vec<Key>) -> Self {
         assert!(keys_same_proto(&keys), "recipient keys must use same proto");
         Self { keys }
     }
 
     /// Get recipient keys.
+    #[must_use]
     pub fn keys(&self) -> &[Key] {
         &self.keys
     }
@@ -58,6 +60,7 @@ impl Recipients {
     }
 
     /// Check whether this recipient list has the given fingerprint.
+    #[must_use]
     pub fn has_fingerprint(&self, fingerprint: &str) -> bool {
         self.keys
             .iter()
@@ -65,8 +68,8 @@ impl Recipients {
     }
 }
 
-/// Check whether the given recipients contain any key that we have a secret key in our keychain
-/// for.
+/// Check whether the given recipients contain any key that we have a secret key
+/// in our keychain for.
 pub fn contains_own_secret_key(recipients: &Recipients) -> Result<bool> {
     let secrets = Recipients::from(crypto::context(&crate::CONFIG)?.keys_private()?);
     Ok(recipients

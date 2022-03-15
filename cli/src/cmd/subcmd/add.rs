@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgStore, CmdArg};
 
@@ -6,8 +6,8 @@ use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgStore, CmdArg};
 pub(crate) struct CmdAdd;
 
 impl CmdAdd {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("add")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("add")
             .alias("a")
             .alias("new")
             .alias("n")
@@ -15,23 +15,19 @@ impl CmdAdd {
             .alias("insert")
             .alias("ins")
             .about("Add a secret")
-            .arg(
-                Arg::new("NAME")
-                    .about("Secret name and path")
-                    .required(true),
-            )
+            .arg(Arg::new("NAME").help("Secret name and path").required(true))
             .arg(
                 Arg::new("empty")
                     .long("empty")
                     .short('e')
-                    .about("Add empty secret, do not edit"),
+                    .help("Add empty secret, do not edit"),
             )
             .arg(
                 Arg::new("stdin")
                     .long("stdin")
                     .short('S')
                     .alias("from-stdin")
-                    .about("Read secret from stdin, do not open editor")
+                    .help("Read secret from stdin, do not open editor")
                     .conflicts_with("empty"),
             )
             .arg(ArgStore::build())

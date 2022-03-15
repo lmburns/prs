@@ -46,15 +46,7 @@ impl<'a> Completions<'a> {
             if matcher_completions.stdout() {
                 shell.generate(&mut app, matcher_completions.name(), &mut std::io::stdout());
             } else {
-                // Determine path of final file, create file, write completion script to it
-
-                // let path = dir.join(shell.file_name(&matcher_completions.name()));
-                // let mut file = File::create(path).map_err(Error::Write)?;
-
-                // shell.generate(&mut app, matcher_completions.name(), &mut file);
-
-                shell.generate_to(&mut app, matcher_completions.name(), &dir);
-                // file.sync_all().map_err(Error::Write)?;
+                shell.generate_to(&mut app, matcher_completions.name(), &dir)?;
             }
             if !quiet {
                 eprintln!(" done.");

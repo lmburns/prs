@@ -22,6 +22,7 @@ pub struct Ciphertext(SecVec<u8>);
 
 impl Ciphertext {
     /// New empty ciphertext.
+    #[must_use]
     pub fn empty() -> Self {
         vec![].into()
     }
@@ -41,9 +42,9 @@ impl Ciphertext {
 }
 
 impl From<Vec<u8>> for Ciphertext {
-    fn from(mut other: Vec<u8>) -> Ciphertext {
+    fn from(mut other: Vec<u8>) -> Self {
         // Explicit zeroing of unsecure buffer required
-        let into = Ciphertext(other.to_vec().into());
+        let into = Self(other.clone().into());
         other.zeroize();
         into
     }
@@ -58,6 +59,7 @@ pub struct Plaintext(SecVec<u8>);
 
 impl Plaintext {
     /// New empty plaintext.
+    #[must_use]
     pub fn empty() -> Self {
         vec![].into()
     }
@@ -71,6 +73,7 @@ impl Plaintext {
     /// The reference itself is safe to use and share. Data may be cloned from this reference
     /// though, when that happens we lose track of it and are unable to securely handle it in
     /// memory. You should clone `Plaintext` instead.
+    #[must_use]
     pub fn unsecure_ref(&self) -> &[u8] {
         self.0.unsecure()
     }
@@ -91,21 +94,20 @@ impl Plaintext {
     /// Get the first line of this secret as plaintext.
     ///
     /// Returns empty plaintext if there are no lines.
-    pub fn first_line(&self) -> Result<Plaintext> {
+    pub fn first_line(&self) -> Result<Self> {
         Ok(self
             .unsecure_to_str()
             .map_err(Err::Utf8)?
             .lines()
             .next()
-            .map(|l| l.as_bytes().into())
-            .unwrap_or_else(std::vec::Vec::new)
+            .map_or_else(Vec::new, |l| l.as_bytes().into())
             .into())
     }
 
     /// Get all lines execpt the first one.
     ///
     /// Returns empty plaintext if there are no lines.
-    pub fn except_first_line(&self) -> Result<Plaintext> {
+    pub fn except_first_line(&self) -> Result<Self> {
         Ok(self
             .unsecure_to_str()
             .map_err(Err::Utf8)?
@@ -123,7 +125,7 @@ impl Plaintext {
     /// value is returned. Returns an error if the property does not exist.
     ///
     /// This will never return the first line being the password.
-    pub fn property(&self, property: &str) -> Result<Plaintext> {
+    pub fn property(&self, property: &str) -> Result<Self> {
         let property = property.trim().to_uppercase();
         self.unsecure_to_str()
             .map_err(Err::Utf8)?
@@ -132,7 +134,7 @@ impl Plaintext {
             .find_map(|line| {
                 let mut parts = line.splitn(2, PROPERTY_DELIMITER);
                 if parts.next().unwrap().trim().to_uppercase() == property {
-                    Some(parts.next().map(|value| value.trim()).unwrap_or("").into())
+                    Some(parts.next().map_or("", str::trim).into())
                 } else {
                     None
                 }
@@ -142,7 +144,7 @@ impl Plaintext {
 
     // TODO: use
     /// Return OTP code
-    pub fn otp(&self) -> Result<Plaintext> {
+    pub fn otp(&self) -> Result<Self> {
         self.unsecure_to_str()
             .map_err(Err::Utf8)?
             .lines()
@@ -150,7 +152,7 @@ impl Plaintext {
             .find_map(|line| {
                 let mut parts = line.splitn(2, PROPERTY_DELIMITER);
                 if parts.next().unwrap().trim().to_uppercase() == "otp" {
-                    Some(parts.next().map(|value| value.trim()).unwrap_or("").into())
+                    Some(parts.next().map_or("", str::trim).into())
                 } else {
                     None
                 }
@@ -161,7 +163,7 @@ impl Plaintext {
     /// Append other plaintext.
     ///
     /// Optionally adds platform newline.
-    pub fn append(&mut self, other: Plaintext, newline: bool) {
+    pub fn append(&mut self, other: &Self, newline: bool) {
         let mut data = self.unsecure_ref().to_vec();
         if newline {
             data.extend_from_slice(NEWLINE.as_bytes());
@@ -174,6 +176,7 @@ impl Plaintext {
     ///
     /// - Empty if 0 bytes
     /// - Empty if bytes parsed as UTF-8 has trimmed length of 0 characters (ignored on encoding failure)
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.unsecure_ref().is_empty()
             || std::str::from_utf8(self.unsecure_ref())
@@ -183,18 +186,18 @@ impl Plaintext {
 }
 
 impl From<String> for Plaintext {
-    fn from(mut other: String) -> Plaintext {
+    fn from(mut other: String) -> Self {
         // Explicit zeroing of unsecure buffer required
-        let into = Plaintext(other.as_bytes().into());
+        let into = Self(other.as_bytes().into());
         other.zeroize();
         into
     }
 }
 
 impl From<Vec<u8>> for Plaintext {
-    fn from(mut other: Vec<u8>) -> Plaintext {
+    fn from(mut other: Vec<u8>) -> Self {
         // Explicit zeroing of unsecure buffer required
-        let into = Plaintext(other.to_vec().into());
+        let into = Self(other.clone().into());
         other.zeroize();
         into
     }
@@ -237,7 +240,7 @@ mod tests {
         );
 
         // Test not empty
-        plaintext.append(Plaintext::from("abc"), false);
+        plaintext.append(&Plaintext::from("abc"), false);
         assert!(!plaintext.is_empty(), "empty plaintext should not be empty");
         assert!(
             !plaintext.unsecure_ref().is_empty(),
@@ -299,39 +302,39 @@ mod tests {
     fn plaintext_append() {
         // Append to empty without newline
         let mut plaintext = Plaintext::empty();
-        plaintext.append(Plaintext::from("abc"), false);
+        plaintext.append(&Plaintext::from("abc"), false);
         assert_eq!(plaintext.unsecure_to_str().unwrap(), "abc");
-        plaintext.append(Plaintext::from("def"), false);
+        plaintext.append(&Plaintext::from("def"), false);
         assert_eq!(plaintext.unsecure_to_str().unwrap(), "abcdef");
 
         // Append to empty with newline
         let mut plaintext = Plaintext::empty();
-        plaintext.append(Plaintext::from("abc"), true);
+        plaintext.append(&Plaintext::from("abc"), true);
         assert_eq!(plaintext.unsecure_to_str().unwrap(), "\nabc");
-        plaintext.append(Plaintext::from("def"), true);
+        plaintext.append(&Plaintext::from("def"), true);
         assert_eq!(plaintext.unsecure_to_str().unwrap(), "\nabc\ndef");
 
         // Append empty to empty
         let mut plaintext = Plaintext::empty();
-        plaintext.append(Plaintext::empty(), false);
+        plaintext.append(&Plaintext::empty(), false);
         assert!(plaintext.is_empty());
-        plaintext.append(Plaintext::empty(), true);
+        plaintext.append(&Plaintext::empty(), true);
         assert_eq!(plaintext.unsecure_to_str().unwrap(), "\n");
 
         // Keep existing newlines
         let mut plaintext = Plaintext::from("\n\n");
-        plaintext.append(Plaintext::from("\n\n"), false);
+        plaintext.append(&Plaintext::from("\n\n"), false);
         assert_eq!(plaintext.unsecure_to_str().unwrap(), "\n\n\n\n");
-        plaintext.append(Plaintext::from("\n\n"), true);
+        plaintext.append(&Plaintext::from("\n\n"), true);
         assert_eq!(plaintext.unsecure_to_str().unwrap(), "\n\n\n\n\n\n\n");
     }
 
-    #[quickcheck]
+    #[quickcheck_macros::quickcheck]
     fn plaintext_append_string(a: String, b: String, c: String) {
         // Appending lots of random stuff and parsing as string should never fail
         let mut plaintext = Plaintext::from(a);
-        plaintext.append(Plaintext::from(b), false);
-        plaintext.append(Plaintext::from(c), true);
+        plaintext.append(&Plaintext::from(b), false);
+        plaintext.append(&Plaintext::from(c), true);
         plaintext.unsecure_to_str().unwrap();
     }
 
@@ -395,7 +398,7 @@ mod tests {
         }
     }
 
-    #[quickcheck]
+    #[quickcheck_macros::quickcheck]
     fn plaintext_must_zero_on_drop(plaintext: String) -> bool {
         // Skip all-zero/empty because we cannot reliably test
         if plaintext.len() < 16 || plaintext.bytes().all(|b| b == 0) {
@@ -414,7 +417,7 @@ mod tests {
         };
 
         // Memory must have been explicitly zeroed, it must never be the same as before
-        slice != &must_not_match
+        slice != must_not_match
     }
 
     #[test]
@@ -426,7 +429,7 @@ mod tests {
         );
     }
 
-    #[quickcheck]
+    #[quickcheck_macros::quickcheck]
     fn ciphertext_must_zero_on_drop(ciphertext: Vec<u8>) -> bool {
         // Skip all-zero/empty because we cannot reliably test
         if ciphertext.len() < 16 || ciphertext.iter().all(|b| *b == 0) {
@@ -445,6 +448,6 @@ mod tests {
         };
 
         // Memory must have been explicitly zeroed, it must never be the same as before
-        slice != &must_not_match
+        slice != must_not_match
     }
 }

@@ -36,7 +36,6 @@ impl<'a> List<'a> {
     }
 
     /// Invoke the OTP action
-    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn invoke(&self) -> Result<()> {
         let _span = tracing::debug_span!("invoking otp list").entered();
 

@@ -1,7 +1,6 @@
 //! Password store synchronization functionality.
 
-use std::path::Path;
-use std::time::Duration;
+use std::{path::Path, time::Duration};
 
 use anyhow::Result;
 
@@ -15,8 +14,8 @@ pub const STORE_GIT_DIR: &str = ".git/";
 
 /// Duration after which pull refs are considered outdated.
 ///
-/// If the last pull is within this duration, some operations such as a push may be optimized away
-/// if not needed.
+/// If the last pull is within this duration, some operations such as a push may
+/// be optimized away if not needed.
 pub const GIT_PULL_OUTDATED: Duration = Duration::from_secs(30);
 
 /// Sync helper for given store.
@@ -27,7 +26,8 @@ pub struct Sync<'a> {
 
 impl<'a> Sync<'a> {
     /// Construct new sync helper for given store.
-    pub fn new(store: &'a Store) -> Sync<'a> {
+    #[must_use]
+    pub const fn new(store: &'a Store) -> Sync<'a> {
         Self { store }
     }
 
@@ -38,8 +38,8 @@ impl<'a> Sync<'a> {
 
     /// Check readyness of store for syncing.
     ///
-    /// This checks whether the repository state is clean, which means that there's no active
-    /// merge/rebase/etc.
+    /// This checks whether the repository state is clean, which means that
+    /// there's no active merge/rebase/etc.
     /// The repository might be dirty, use `sync_is_dirty` to check that.
     pub fn readyness(&self) -> Result<Readyness> {
         let path = self.path();
@@ -49,13 +49,12 @@ impl<'a> Sync<'a> {
         }
 
         match git::git_state(path).unwrap() {
-            RepositoryState::Clean => {
+            RepositoryState::Clean =>
                 if is_dirty(path)? {
                     Ok(Readyness::Dirty)
                 } else {
                     Ok(Readyness::Ready)
-                }
-            }
+                },
             state => Ok(Readyness::RepoState(state)),
         }
     }
@@ -181,6 +180,7 @@ impl<'a> Sync<'a> {
     }
 
     /// Check whether sync has been initialized in this store.
+    #[must_use]
     pub fn is_init(&self) -> bool {
         self.path().join(STORE_GIT_DIR).is_dir()
     }
@@ -255,11 +255,9 @@ pub enum Readyness {
 
 impl Readyness {
     /// Check if ready.
-    pub fn is_ready(&self) -> bool {
-        match self {
-            Self::Ready => true,
-            _ => false,
-        }
+    #[must_use]
+    pub const fn is_ready(&self) -> bool {
+        matches!(self, Self::Ready)
     }
 }
 
@@ -282,7 +280,7 @@ fn safe_need_to_push(repo: &Path) -> bool {
                 err,
             );
             true
-        }
+        },
     }
 }
 

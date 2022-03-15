@@ -12,6 +12,7 @@ pub struct Key {
 
 impl Key {
     /// Key fingerprint.
+    #[must_use]
     pub fn fingerprint(&self, short: bool) -> String {
         if short {
             &self.fingerprint[self.fingerprint.len() - 16..]
@@ -23,12 +24,14 @@ impl Key {
     }
 
     /// Key displayable user data.
+    #[must_use]
     pub fn display_user(&self) -> String {
         self.user_ids.join("; ")
     }
 
     /// Transform into generic key.
-    pub fn into_key(self) -> crate::crypto::Key {
+    #[must_use]
+    pub const fn into_key(self) -> crate::crypto::Key {
         crate::crypto::Key::Gpg(self)
     }
 }

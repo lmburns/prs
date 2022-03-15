@@ -704,8 +704,7 @@ where
     HD: FnOnce() -> Option<P>,
 {
     let input_str = input.as_ref();
-    if input_str.starts_with('~') {
-        let input_after_tilde = &input_str[1..];
+    if let Some(input_after_tilde) = input_str.strip_prefix('~') {
         if input_after_tilde.is_empty()
             || input_after_tilde.starts_with('/')
             || (cfg!(windows) && input_after_tilde.starts_with('\\'))

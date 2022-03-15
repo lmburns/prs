@@ -33,7 +33,8 @@ pub enum Proto {
 
 impl Proto {
     /// Get the protocol display name.
-    pub fn name(&self) -> &str {
+    #[must_use]
+    pub const fn name(&self) -> &str {
         match self {
             Self::Gpg => "GPG",
         }
@@ -53,7 +54,8 @@ pub struct Config {
 
 impl Config {
     /// Construct config with given protocol.
-    pub fn from(proto: Proto) -> Self {
+    #[must_use]
+    pub const fn from(proto: Proto) -> Self {
         Self {
             proto,
             gpg_tty: false,
@@ -74,7 +76,8 @@ pub enum Key {
 
 impl Key {
     /// Get key protocol type.
-    pub fn proto(&self) -> Proto {
+    #[must_use]
+    pub const fn proto(&self) -> Proto {
         match self {
             #[cfg(feature = "_crypto-gpg")]
             Key::Gpg(_) => Proto::Gpg,
@@ -82,6 +85,7 @@ impl Key {
     }
 
     /// Key fingerprint.
+    #[must_use]
     pub fn fingerprint(&self, short: bool) -> String {
         match self {
             #[cfg(feature = "_crypto-gpg")]
@@ -90,6 +94,7 @@ impl Key {
     }
 
     /// Display string for user.
+    #[must_use]
     pub fn display(&self) -> String {
         match self {
             #[cfg(feature = "_crypto-gpg")]
@@ -146,6 +151,7 @@ pub struct Context {
 }
 
 impl Context {
+    #[must_use]
     pub fn from(context: Box<dyn IsContext>) -> Self {
         Self { context }
     }
@@ -299,6 +305,7 @@ pub struct ContextPool {
 
 impl ContextPool {
     /// Create new empty pool.
+    #[must_use]
     pub fn empty() -> Self {
         Self {
             contexts: HashMap::new(),

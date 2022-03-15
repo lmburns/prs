@@ -29,7 +29,7 @@ static SSH_PERSIST_GUESS_CACHE: Lazy<Mutex<HashMap<PathBuf, bool>>> = Lazy::new(
 /// Configure given git command to use SSH connection persisting.
 ///
 /// `guess_ssh_connection_persist_support` should be used to guess whether this is supported.
-pub fn configure_ssh_persist(cmd: &mut Command) {
+pub(crate) fn configure_ssh_persist(cmd: &mut Command) {
     cmd.env(self::GIT_ENV_SSH, self::SSH_PERSIST_CMD);
 }
 
@@ -46,7 +46,7 @@ pub fn configure_ssh_persist(cmd: &mut Command) {
 /// Related: https://gitlab.com/timvisee/prs/-/issues/31
 /// Related: https://github.com/timvisee/prs/issues/5#issuecomment-803940880
 // TODO: make configurable, add current user ID to path
-pub fn guess_ssh_persist_support(repo: &Path) -> bool {
+pub(crate) fn guess_ssh_persist_support(repo: &Path) -> bool {
     // We must be using Unix, unreliable on Windows (and others?)
     if !cfg!(unix) {
         return false;

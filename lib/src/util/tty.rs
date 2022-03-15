@@ -9,6 +9,7 @@ const LOCAL_TTY_PATH: &str = "/dev/stdin";
 /// Get TTY path for this process.
 ///
 /// Returns `None` if not in a TTY. Always returns `None` if not Linux, FreeBSD or OpenBSD.
+#[must_use]
 pub fn get_tty() -> Option<PathBuf> {
     // None on unsupported platforms
     if cfg!(not(any(

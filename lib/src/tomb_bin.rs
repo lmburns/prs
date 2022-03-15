@@ -13,12 +13,12 @@ use crate::crypto::Key;
 use crate::util;
 
 /// Binary name.
-pub const BIN_NAME: &str = "tomb";
+pub(crate) const BIN_NAME: &str = "tomb";
 
 /// Invoke tomb dig.
 ///
 /// `mbs` is the size of the tomb to create in megabytes.
-pub fn tomb_dig(tomb_file: &Path, mbs: u32, settings: TombSettings) -> Result<()> {
+pub(crate) fn tomb_dig(tomb_file: &Path, mbs: u32, settings: TombSettings) -> Result<()> {
     tomb(
         &[
             "dig",
@@ -33,7 +33,7 @@ pub fn tomb_dig(tomb_file: &Path, mbs: u32, settings: TombSettings) -> Result<()
 }
 
 /// Invoke tomb forge.
-pub fn tomb_forge(key_file: &Path, key: &Key, settings: TombSettings) -> Result<()> {
+pub(crate) fn tomb_forge(key_file: &Path, key: &Key, settings: TombSettings) -> Result<()> {
     tomb(
         &[
             "forge",
@@ -48,7 +48,7 @@ pub fn tomb_forge(key_file: &Path, key: &Key, settings: TombSettings) -> Result<
 }
 
 /// Invoke tomb lock.
-pub fn tomb_lock(
+pub(crate) fn tomb_lock(
     tomb_file: &Path,
     key_file: &Path,
     key: &Key,
@@ -72,7 +72,7 @@ pub fn tomb_lock(
 }
 
 /// Invoke tomb open.
-pub fn tomb_open(
+pub(crate) fn tomb_open(
     tomb_file: &Path,
     key_file: &Path,
     store_dir: &Path,
@@ -107,7 +107,7 @@ pub fn tomb_open(
 }
 
 /// Invoke tomb close.
-pub fn tomb_close(tomb_file: &Path, settings: TombSettings) -> Result<()> {
+pub(crate) fn tomb_close(tomb_file: &Path, settings: TombSettings) -> Result<()> {
     tomb(
         &["close", name(tomb_file).expect("failed to get tomb name")],
         settings,
@@ -115,7 +115,7 @@ pub fn tomb_close(tomb_file: &Path, settings: TombSettings) -> Result<()> {
 }
 
 /// Invoke tomb resize.
-pub fn tomb_resize(
+pub(crate) fn tomb_resize(
     tomb_file: &Path,
 
     key_file: &Path,
@@ -141,7 +141,7 @@ pub fn tomb_resize(
 }
 
 /// Get tomb name based on path.
-pub fn name(path: &Path) -> Option<&str> {
+pub(crate) fn name(path: &Path) -> Option<&str> {
     path.file_name()?.to_str()?.rsplitn(2, '.').last()
 }
 
@@ -217,7 +217,8 @@ pub struct TombSettings {
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+#[allow(variant_size_differences)]
+pub(crate) enum Err {
     #[error("failed to invoke tomb command")]
     Tomb(#[source] std::io::Error),
 

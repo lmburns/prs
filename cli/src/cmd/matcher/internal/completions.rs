@@ -1,7 +1,8 @@
 use std::{fmt, io::Write, path::PathBuf};
 
-use clap::{App, ArgMatches};
-use clap_generate::generators;
+use anyhow::{anyhow, Result};
+use clap::{ArgMatches, Command};
+use clap_complete::{self as complete, shells};
 
 use super::Matcher;
 use crate::util;
@@ -118,52 +119,42 @@ impl Shell {
         }
     }
 
-    /// Suggested file name for completions file of current shell.
-    #[allow(unused)]
-    pub(crate) fn file_name(self, bin_name: &str) -> String {
-        match self {
-            Shell::Bash => format!("{}.bash", bin_name),
-            Shell::Elvish => format!("{}.elv", bin_name),
-            Shell::Fish => format!("{}.fish", bin_name),
-            Shell::PowerShell => format!("_{}.ps1", bin_name),
-            Shell::Zsh => format!("_{}", bin_name),
-        }
-    }
-
     /// Generate completion script.
-    pub(crate) fn generate<S>(self, app: &mut App<'_>, bin_name: S, buf: &mut dyn Write)
+    pub(crate) fn generate<S>(self, app: &mut Command<'_>, bin_name: S, buf: &mut dyn Write)
     where
         S: Into<String>,
     {
         match self {
-            Shell::Bash => clap_generate::generate::<generators::Bash, _>(app, bin_name, buf),
-            Shell::Elvish => clap_generate::generate::<generators::Elvish, _>(app, bin_name, buf),
-            Shell::Fish => clap_generate::generate::<generators::Fish, _>(app, bin_name, buf),
-            Shell::PowerShell =>
-                clap_generate::generate::<generators::PowerShell, _>(app, bin_name, buf),
-            Shell::Zsh => clap_generate::generate::<generators::Zsh, _>(app, bin_name, buf),
+            Shell::Bash => complete::generate(shells::Bash, app, bin_name, buf),
+            Shell::Elvish => complete::generate(shells::Elvish, app, bin_name, buf),
+            Shell::Fish => complete::generate(shells::Fish, app, bin_name, buf),
+            Shell::PowerShell => complete::generate(shells::PowerShell, app, bin_name, buf),
+            Shell::Zsh => complete::generate(shells::Zsh, app, bin_name, buf),
         }
     }
 
-    /// Generate completion script to a directory
-    pub(crate) fn generate_to<S, T>(self, app: &mut App<'_>, bin_name: S, out_dir: T)
+    /// Generate completion script to a file
+    pub fn generate_to<S, T>(
+        self,
+        app: &mut Command<'_>,
+        bin_name: S,
+        out_dir: T,
+    ) -> Result<PathBuf>
     where
         S: Into<String>,
         T: Into<std::ffi::OsString>,
     {
-        match self {
-            Shell::Bash =>
-                clap_generate::generate_to::<generators::Bash, _, _>(app, bin_name, out_dir),
-            Shell::Elvish =>
-                clap_generate::generate_to::<generators::Elvish, _, _>(app, bin_name, out_dir),
-            Shell::Fish =>
-                clap_generate::generate_to::<generators::Fish, _, _>(app, bin_name, out_dir),
-            Shell::PowerShell =>
-                clap_generate::generate_to::<generators::PowerShell, _, _>(app, bin_name, out_dir),
-            Shell::Zsh =>
-                clap_generate::generate_to::<generators::Zsh, _, _>(app, bin_name, out_dir),
+        {
+            match self {
+                Shell::Bash => complete::generate_to(shells::Bash, app, bin_name, out_dir),
+                Shell::Elvish => complete::generate_to(shells::Elvish, app, bin_name, out_dir),
+                Shell::Fish => complete::generate_to(shells::Fish, app, bin_name, out_dir),
+                Shell::PowerShell =>
+                    complete::generate_to(shells::PowerShell, app, bin_name, out_dir),
+                Shell::Zsh => complete::generate_to(shells::Zsh, app, bin_name, out_dir),
+            }
         }
-        .expect("error generating completions");
+        .map_err(|e| anyhow!(e))
     }
 }
 

@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, CmdArg};
 
@@ -6,15 +6,15 @@ use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, CmdArg};
 pub(crate) struct CmdRecrypt;
 
 impl CmdRecrypt {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("recrypt")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("recrypt")
             .alias("reencrypt")
             .about("Re-encrypt secrets")
             .arg(
                 Arg::new("all")
                     .long("all")
                     .short('a')
-                    .about("Re-encrypt all secrets")
+                    .help("Re-encrypt all secrets")
                     .conflicts_with("QUERY"),
             )
             .arg(ArgQuery::build().required_unless_present("all"))

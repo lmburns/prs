@@ -25,7 +25,7 @@ const GPG_OUTPUT_ERR_NO_SECKEY: &str = "decryption failed: No secret key";
 /// # Panics
 ///
 /// Panics if list of recipients is empty.
-pub fn encrypt(config: &Config, recipients: &[&str], plaintext: Plaintext) -> Result<Ciphertext> {
+pub fn encrypt(config: &Config, recipients: &[&str], plaintext: &Plaintext) -> Result<Ciphertext> {
     assert!(
         !recipients.is_empty(),
         "attempting to encrypt secret for empty list of recipients"
@@ -49,7 +49,7 @@ pub fn encrypt(config: &Config, recipients: &[&str], plaintext: Plaintext) -> Re
 ///
 /// - `config`: GPG config
 /// - `ciphertext`: ciphertext to decrypt
-pub fn decrypt(config: &Config, ciphertext: Ciphertext) -> Result<Plaintext> {
+pub fn decrypt(config: &Config, ciphertext: &Ciphertext) -> Result<Plaintext> {
     // TODO: ensure ciphertext ends with PGP footer
     Ok(Plaintext::from(
         gpg_stdin_stdout_ok_bin(config, &["--quiet", "--decrypt"], ciphertext.unsecure_ref())
@@ -65,16 +65,15 @@ pub fn decrypt(config: &Config, ciphertext: Ciphertext) -> Result<Plaintext> {
 /// - `ciphertext`: ciphertext to check
 // To check this, actual decryption is attempted, see this if this can be improved:
 // https://stackoverflow.com/q/64633736/1000145
-pub fn can_decrypt(config: &Config, ciphertext: Ciphertext) -> Result<bool> {
+pub fn can_decrypt(config: &Config, ciphertext: &Ciphertext) -> Result<bool> {
     // TODO: ensure ciphertext ends with PGP footer
 
     let output = gpg_stdin_output(config, &["--quiet", "--decrypt"], ciphertext.unsecure_ref())
         .map_err(Err::Decrypt)?;
 
     match output.status.code() {
-        Some(0) | None => Ok(true),
         Some(2) => Ok(!std::str::from_utf8(&output.stdout)?.contains(GPG_OUTPUT_ERR_NO_SECKEY)),
-        Some(_) => Ok(true),
+        Some(0 | _) | None => Ok(true),
     }
 }
 
@@ -84,7 +83,7 @@ pub fn can_decrypt(config: &Config, ciphertext: Ciphertext) -> Result<bool> {
 pub fn public_keys(config: &Config) -> Result<Vec<KeyId>> {
     let list =
         gpg_stdout_ok(config, &["--list-keys", "--keyid-format", "LONG"]).map_err(Err::Keys)?;
-    parse_key_list(list).ok_or_else(|| Err::UnexpectedOutput.into())
+    parse_key_list(&list).ok_or_else(|| Err::UnexpectedOutput.into())
 }
 
 /// Get all private/secret keys from keychain.
@@ -93,7 +92,7 @@ pub fn public_keys(config: &Config) -> Result<Vec<KeyId>> {
 pub fn private_keys(config: &Config) -> Result<Vec<KeyId>> {
     let list = gpg_stdout_ok(config, &["--list-secret-keys", "--keyid-format", "LONG"])
         .map_err(Err::Keys)?;
-    parse_key_list(list).ok_or_else(|| Err::UnexpectedOutput.into())
+    parse_key_list(&list).ok_or_else(|| Err::UnexpectedOutput.into())
 }
 
 /// Import given key from bytes into keychain.
@@ -152,7 +151,7 @@ pub struct KeyId(pub String, pub Vec<String>);
 
 /// Parse key list output from gnupg.
 // TODO: throw proper errors on parse failure
-fn parse_key_list(list: String) -> Option<Vec<KeyId>> {
+fn parse_key_list(list: &str) -> Option<Vec<KeyId>> {
     // Return empty list if there's no key loaded
     if list.trim().is_empty() {
         return Some(vec![]);

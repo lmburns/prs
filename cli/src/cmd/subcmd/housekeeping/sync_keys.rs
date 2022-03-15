@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg};
 
@@ -6,15 +6,15 @@ use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg};
 pub(crate) struct CmdSyncKeys;
 
 impl CmdSyncKeys {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("sync-keys")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("sync-keys")
             .alias("sync-recipients")
             .about("Sync public keys in store, import missing keys")
             .arg(
                 Arg::new("no-import")
                     .long("no-import")
                     .alias("skip-import")
-                    .about("Skip importing missing keys to keychain"),
+                    .help("Skip importing missing keys to keychain"),
             )
             .arg(ArgAllowDirty::build())
             .arg(ArgNoSync::build())

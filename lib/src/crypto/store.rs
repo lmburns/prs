@@ -10,7 +10,9 @@ use std::{
 use anyhow::Result;
 use thiserror::Error;
 
-use super::{prelude::*, recipients::Recipients, util, Config, ContextPool, Key, Proto, STORE_UMASK};
+use super::{
+    prelude::*, recipients::Recipients, util, Config, ContextPool, Key, Proto, STORE_UMASK,
+};
 use crate::Store;
 
 /// Password store GPG IDs file.
@@ -20,11 +22,13 @@ const STORE_GPG_IDS_FILE: &str = ".gpg-id";
 const STORE_PUB_KEY_DIR: &str = ".public-keys/";
 
 /// Get the GPG IDs file for a store.
+#[must_use]
 pub fn store_gpg_ids_file(store: &Store) -> PathBuf {
     store.root.join(STORE_GPG_IDS_FILE)
 }
 
 /// Get the public keys directory for a store.
+#[must_use]
 pub fn store_public_keys_dir(store: &Store) -> PathBuf {
     store.root.join(STORE_PUB_KEY_DIR)
 }
@@ -55,7 +59,7 @@ fn read_fingerprints<P: AsRef<Path>>(path: P) -> Result<Vec<String>> {
         .map_err(Err::ReadFile)?
         .lines()
         .filter(|fp| !fp.trim().is_empty())
-        .map(|fp| fp.into())
+        .map(Into::into)
         .collect())
 }
 
@@ -96,7 +100,7 @@ pub fn store_load_keys(store: &Store) -> Result<Vec<Key>> {
 
     if !fingerprints.is_empty() {
         let mut context = super::context(&crate::CONFIG)?;
-        let fingerprints: Vec<_> = fingerprints.iter().map(|fp| fp.as_str()).collect();
+        let fingerprints: Vec<_> = fingerprints.iter().map(String::as_str).collect();
         keys.extend(context.find_public_keys(&fingerprints)?);
     }
 
@@ -157,7 +161,7 @@ pub fn store_sync_public_key_files(store: &Store, keys: &[Key]) -> Result<()> {
     let files: Vec<(PathBuf, String)> = dir
         .read_dir()
         .map_err(Err::SyncKeyFiles)?
-        .filter_map(|e| e.ok())
+        .filter_map(Result::ok)
         .filter(|e| e.file_type().map(|f| f.is_file()).unwrap_or(false))
         .filter_map(|e| {
             e.file_name()
@@ -212,7 +216,7 @@ pub fn import_missing_keys_from_store(store: &Store) -> Result<Vec<ImportResult>
     let gpg_fingerprints = store_read_gpg_fingerprints(store)?;
     for fingerprint in gpg_fingerprints {
         let context = contexts.get_mut(&crate::CONFIG)?;
-        if let Err(_) = context.get_public_key(&fingerprint) {
+        if context.get_public_key(&fingerprint).is_err() {
             let path = &store_public_keys_dir(store).join(&fingerprint);
             if path.is_file() {
                 context.import_key_file(path)?;

@@ -117,6 +117,7 @@ impl SkimItem for SkimSecret {
         self.0.name.clone().into()
     }
 
+    #[allow(clippy::needless_borrow)]
     fn text(&self) -> Cow<str> {
         (&self.0.name).into()
     }

@@ -4,7 +4,7 @@ pub(crate) mod generate;
 pub(crate) mod list;
 pub(crate) mod remove;
 
-use clap::{App, AppSettings};
+use clap::Command;
 
 use crate::cmd::arg::{ArgStore, CmdArg};
 
@@ -12,15 +12,15 @@ use crate::cmd::arg::{ArgStore, CmdArg};
 pub(crate) struct CmdRecipients;
 
 impl CmdRecipients {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("recipients")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("recipients")
             .about("Manage store recipients")
             .alias("recipient")
             .alias("recip")
             .alias("rec")
             .alias("keys")
             .alias("kes")
-            .setting(AppSettings::SubcommandRequiredElseHelp)
+            .subcommand_required(true)
             .subcommand(add::CmdAdd::build())
             .subcommand(export::CmdExport::build())
             .subcommand(generate::CmdGenerate::build())

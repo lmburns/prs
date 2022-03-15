@@ -1,11 +1,11 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 /// The recipient export command definition.
 pub(crate) struct CmdExport;
 
 impl CmdExport {
-    pub(crate) fn build<'a>() -> App<'a> {
-        let cmd = App::new("export")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        let cmd = Command::new("export")
             .alias("exp")
             .alias("ex")
             .about("Export recipient key")
@@ -16,7 +16,7 @@ impl CmdExport {
                     .alias("output")
                     .alias("file")
                     .value_name("PATH")
-                    .about("Write recipient key to file instead of stdout"),
+                    .help("Write recipient key to file instead of stdout"),
             );
 
         #[cfg(feature = "clipboard")]
@@ -25,7 +25,7 @@ impl CmdExport {
                 .long("copy")
                 .short('c')
                 .alias("yank")
-                .about("Copy recipient key to clipboard instead of stdout"),
+                .help("Copy recipient key to clipboard instead of stdout"),
         );
 
         cmd

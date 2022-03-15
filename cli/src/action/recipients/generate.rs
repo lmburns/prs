@@ -18,6 +18,8 @@ use crate::util::{
 /// Binary name.
 #[cfg(not(windows))]
 const BIN_NAME: &str = "gpg";
+
+/// Binary name.
 #[cfg(windows)]
 const BIN_NAME: &str = "gpg.exe";
 

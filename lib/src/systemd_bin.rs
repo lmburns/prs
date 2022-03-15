@@ -17,9 +17,10 @@ pub const SYSTEMCTL_BIN: &str = "systemctl";
 ///
 /// This may ask for root privileges through sudo.
 pub fn systemd_cmd_timer(time: u32, description: &str, unit: &str, cmd: &[&str]) -> Result<()> {
+    // NOTE: Were these intentionally meant to ignore result?
     // Remove unit first if it failed before
-    let _ = systemd_remove_timer(unit);
-    let _ = systemctl_reset_failed_timer(unit);
+    systemd_remove_timer(unit)?;
+    systemctl_reset_failed_timer(unit)?;
 
     // TODO: do not set -q flag if in verbose mode?
     let time = format!("{}", time);
@@ -77,7 +78,7 @@ pub fn systemd_has_timer(unit: &str) -> Result<bool> {
 
     // Check special status codes
     match cmd.code() {
-        Some(0) | Some(3) => Ok(true),
+        Some(0 | 3) => Ok(true),
         Some(4) if unit.ends_with(".service") => {
             let unit = format!("{}.timer", unit.trim_end_matches(".service"));
             systemd_has_timer(&unit)

@@ -1,11 +1,11 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 /// The tomb resize command definition.
 pub(crate) struct CmdResize;
 
 impl CmdResize {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("resize")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("resize")
             .alias("r")
             .alias("size")
             .alias("grow")
@@ -15,7 +15,7 @@ impl CmdResize {
                     .long("size")
                     .short('S')
                     .value_name("MEGABYTE")
-                    .about("Resize tomb to megabytes"),
+                    .help("Resize tomb to megabytes"),
             )
     }
 }

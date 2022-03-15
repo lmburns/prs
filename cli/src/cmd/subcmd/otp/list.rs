@@ -1,4 +1,4 @@
-use clap::App;
+use clap::Command;
 
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg};
 
@@ -6,8 +6,8 @@ use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg};
 pub(crate) struct CmdList;
 
 impl CmdList {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("list")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("list")
             .alias("l")
             .about("List available otp codes")
             .arg(ArgAllowDirty::build())

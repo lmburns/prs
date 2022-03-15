@@ -2,6 +2,7 @@
 
 use std::{
     env,
+    ffi::OsStr,
     os::linux::fs::MetadataExt,
     path::{Path, PathBuf},
 };
@@ -32,7 +33,8 @@ pub struct Tomb<'a> {
 
 impl<'a> Tomb<'a> {
     /// Construct new Tomb helper for given store.
-    pub fn new(store: &'a Store, quiet: bool, verbose: bool, force: bool) -> Tomb<'a> {
+    #[must_use]
+    pub const fn new(store: &'a Store, quiet: bool, verbose: bool, force: bool) -> Tomb<'a> {
         Self {
             store,
             settings: TombSettings {
@@ -197,7 +199,8 @@ impl<'a> Tomb<'a> {
     }
 
     /// Finalize the Tomb.
-    pub fn finalize(&self) -> Result<()> {
+    #[allow(clippy::unused_self)]
+    pub const fn finalize(&self) -> Result<()> {
         // This is currently just a placeholder for special closing functionality in the
         // future
         Ok(())
@@ -219,8 +222,8 @@ impl<'a> Tomb<'a> {
         // TODO: map errors
 
         // TODO: we need these paths even though tomb does not exist yet
-        let tomb_file = tomb_paths(&self.store.root).first().unwrap().to_owned();
-        let key_file = tomb_key_paths(&self.store.root).first().unwrap().to_owned();
+        let tomb_file = tomb_paths(&self.store.root).first().unwrap().clone();
+        let key_file = tomb_key_paths(&self.store.root).first().unwrap().clone();
         let store_tmp_dir =
             util::fs::append_file_name(&self.store.root, ".tomb-init").map_err(Err::Init)?;
 
@@ -263,6 +266,7 @@ impl<'a> Tomb<'a> {
     /// This guesses based on existence of some files.
     /// If this returns false you may assume this password store doesn't use a
     /// tomb.
+    #[must_use]
     pub fn is_tomb(&self) -> bool {
         find_tomb_path(&self.store.root).is_some()
     }
@@ -328,6 +332,7 @@ pub struct TombSize {
 
 impl TombSize {
     /// Get Tomb file size in MBs.
+    #[must_use]
     pub fn tomb_file_size_mbs(&self) -> Option<u32> {
         self.tomb_file.map(|s| (s / 1024 / 1024) as u32)
     }
@@ -335,19 +340,19 @@ impl TombSize {
     /// Get the desired Tomb size in megabytes based on the current state.
     ///
     /// Currently twice the password store size, defaults to minimum of 10.
+    #[must_use]
     pub fn desired_tomb_size(&self) -> u32 {
         self.store
-            .map(|bytes| ((bytes * 3) / 1024 / 1024).max(10) as u32)
-            .unwrap_or(10)
+            .map_or(10, |bytes| ((bytes * 3) / 1024 / 1024).max(10) as u32)
     }
 
     /// Determine whether the password store should be resized.
+    #[must_use]
     pub fn should_resize(&self) -> bool {
         // TODO: determine this based on 'tomb list' output
         self.store
             .zip(self.tomb_file)
-            .map(|(store, tomb_file)| store * 2 > tomb_file)
-            .unwrap_or(false)
+            .map_or(false, |(store, tomb_file)| store * 2 > tomb_file)
     }
 }
 
@@ -387,7 +392,7 @@ fn tomb_paths(root: &Path) -> Vec<PathBuf> {
 
     // Get parent directory and file name
     let parent = root.parent();
-    let file_name = root.file_name().and_then(|n| n.to_str());
+    let file_name = root.file_name().and_then(OsStr::to_str);
 
     // Same path as store root with .tomb suffix
     if let (Some(parent), Some(file_name)) = (parent, file_name) {
@@ -424,7 +429,7 @@ fn tomb_key_paths(root: &Path) -> Vec<PathBuf> {
 
     // Get parent directory and file name
     let parent = root.parent();
-    let file_name = root.file_name().and_then(|n| n.to_str());
+    let file_name = root.file_name().and_then(OsStr::to_str);
 
     // Same path as store root with .tomb suffix
     if let (Some(parent), Some(file_name)) = (parent, file_name) {

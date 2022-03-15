@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use crate::cmd::matcher::internal::completions::Shell;
 
@@ -6,22 +6,22 @@ use crate::cmd::matcher::internal::completions::Shell;
 pub(crate) struct CmdCompletions;
 
 impl CmdCompletions {
-    pub(crate) fn build<'a>() -> App<'a> {
+    pub(crate) fn build<'a>() -> Command<'a> {
         let shell_variants: Vec<_> = Shell::variants().iter().map(|v| v.name()).collect();
 
-        App::new("completions")
+        Command::new("completions")
             .about("Shell completions")
             .alias("completion")
             .alias("complete")
             .arg(
                 Arg::new("SHELL")
-                    .about("Shell type to generate completions for")
+                    .help("Shell type to generate completions for")
                     .required(true)
                     .multiple_values(true)
                     .takes_value(true)
                     .possible_value("all")
-                    .possible_values(&shell_variants)
-                    .case_insensitive(true),
+                    .possible_values(shell_variants)
+                    .ignore_case(true),
             )
             .arg(
                 Arg::new("output")
@@ -31,14 +31,14 @@ impl CmdCompletions {
                     .alias("out")
                     .alias("dir")
                     .value_name("DIR")
-                    .about("Shell completion files output directory"),
+                    .help("Shell completion files output directory"),
             )
             .arg(
                 Arg::new("stdout")
                     .long("stdout")
                     .short('s')
                     .alias("print")
-                    .about("Output completion files to stdout instead")
+                    .help("Output completion files to stdout instead")
                     .conflicts_with("output"),
             )
             .arg(
@@ -50,7 +50,7 @@ impl CmdCompletions {
                     .alias("bin-name")
                     .alias("binary-name")
                     .value_name("NAME")
-                    .about("Name of binary to generate completions for"),
+                    .help("Name of binary to generate completions for"),
             )
     }
 }

@@ -179,6 +179,7 @@ pub struct OneTimePassword {
     raw_key:       String,
 }
 
+#[allow(clippy::fallible_impl_from)]
 impl From<Account> for OneTimePassword {
     fn from(account: Account) -> Self {
         Self {
@@ -189,26 +190,28 @@ impl From<Account> for OneTimePassword {
             totp: account.totp,
             hash_function: account.hash_function,
             raw_key: account.key,
-            ..Default::default()
+            ..Self::default()
         }
     }
 }
 
 impl OneTimePassword {
     // Calculate counter based on whether the OTP is time based or counter based
+    #[must_use]
     pub fn get_counter(&self) -> u64 {
         if self.totp {
             let timestamp = SystemTime::now()
                 .duration_since(UNIX_EPOCH)
                 .map_err(OtpError::InvalidTimeError)
                 .unwrap()
-                .as_secs() as u64;
+                .as_secs();
             timestamp / self.period
         } else {
             self.counter
         }
     }
 
+    #[must_use]
     pub fn generate(&self) -> String {
         let counter = self.get_counter();
         let message: [u8; 8] = [
@@ -302,41 +305,37 @@ pub struct Account {
 }
 
 /// File that keeps track of all files containing OTP's
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Default, Serialize, Deserialize, Clone)]
 pub struct OtpFile(BTreeMap<String, Account>);
-
-impl Default for OtpFile {
-    fn default() -> Self {
-        Self(BTreeMap::new())
-    }
-}
 
 // TODO: fix failure to communicate with gpg binary error not trapping
 impl OtpFile {
     /// Create a new instance of or open an existing OTP hashing file
     pub fn new(store: &Store) -> Result<Self> {
         let otp_file = store.root.join(OTP_DEFUALT_FILE);
-        if !otp_file.exists() {
-            tracing::debug!("creating parent dir of otp_file");
-            otp_file.parent().map(fs::create_dir_all).transpose()?;
-            Ok(Self::default())
-        } else {
+        if otp_file.exists() {
             let plaintext = crate::crypto::context(&crate::CONFIG)?
                 .decrypt_file(&otp_file)
                 .map_err(OtpError::Decrypt)?;
 
             serde_json::from_slice(plaintext.unsecure_ref())
                 .map_err(|e| OtpError::SerDeserialization(e).into())
+        } else {
+            tracing::debug!("creating parent dir of otp_file");
+            otp_file.parent().map(fs::create_dir_all).transpose()?;
+            Ok(Self::default())
         }
     }
 
     /// Get the OTP account information
+    #[must_use]
     pub fn get(&self, sec_path: &str) -> Option<&Account> {
         self.0.get(sec_path)
     }
 
     /// List the OTP account names and OTP code values
-    pub fn list(&self) -> &BTreeMap<String, Account> {
+    #[must_use]
+    pub const fn list(&self) -> &BTreeMap<String, Account> {
         &self.0
     }
 
@@ -346,6 +345,8 @@ impl OtpFile {
     }
 
     /// Return the length of the keys
+    #[must_use]
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.0.keys().len()
     }
@@ -356,8 +357,8 @@ impl OtpFile {
     }
 
     /// Delete an account from the OTP hash
-    pub fn delete(&mut self, sec_path: String) -> Option<Account> {
-        self.0.remove(&sec_path)
+    pub fn delete(&mut self, sec_path: &str) -> Option<Account> {
+        self.0.remove(sec_path)
     }
 
     /// Save the modified OTP hash
@@ -386,6 +387,7 @@ pub fn parse_base32(key: &str) -> Result<Vec<u8>> {
 }
 
 /// Check whether the user input matches the URI schema
+#[must_use]
 pub fn has_uri(uri: &str) -> bool {
     if !URI_RE.is_match(uri) {
         return false;
@@ -399,7 +401,7 @@ pub fn uri_secret(uri: &str) -> Result<String> {
         .captures(uri)
         .ok_or(OtpError::RegexCaptures)?
         .name("secret")
-        .ok_or(OtpError::RegexCaptureName("secret".to_string()))?
+        .ok_or_else(|| OtpError::RegexCaptureName("secret".to_string()))?
         .as_str()
         .to_owned())
 }
@@ -410,7 +412,7 @@ pub fn uri_issuer(uri: &str) -> Result<String> {
         .captures(uri)
         .ok_or(OtpError::RegexCaptures)?
         .name("issuer")
-        .ok_or(OtpError::RegexCaptureName("issuer".to_string()))?
+        .ok_or_else(|| OtpError::RegexCaptureName("issuer".to_string()))?
         .as_str()
         .to_owned())
 }

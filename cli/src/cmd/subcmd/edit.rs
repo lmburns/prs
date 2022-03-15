@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, ArgStore, CmdArg};
 
@@ -6,8 +6,8 @@ use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, ArgStore, CmdArg};
 pub(crate) struct CmdEdit;
 
 impl CmdEdit {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("edit")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("edit")
             .alias("e")
             .about("Edit a secret")
             .arg(ArgQuery::build())
@@ -16,7 +16,7 @@ impl CmdEdit {
                     .long("stdin")
                     .short('S')
                     .alias("from-stdin")
-                    .about("Read secret from stdin, do not open editor"),
+                    .help("Read secret from stdin, do not open editor"),
             )
             .arg(ArgStore::build())
             .arg(ArgAllowDirty::build())

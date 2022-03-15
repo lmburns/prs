@@ -1,5 +1,6 @@
 use clap::{
-    crate_authors, crate_description, crate_name, crate_version, App, AppSettings, Arg, ArgMatches,
+    crate_authors, crate_description, crate_name, crate_version, Arg, ArgMatches, ColorChoice,
+    Command,
 };
 
 use super::{
@@ -18,27 +19,27 @@ pub(crate) struct Handler {
 
 impl<'a> Handler {
     /// Build the application CLI definition.
-    pub(crate) fn build() -> App<'a> {
-        // Disable color usage if compiled without color support
-        let clap_app_color = if env::var_os("NO_COLOR").is_none() {
-            AppSettings::ColoredHelp
-        } else {
-            AppSettings::ColorNever
-        };
+    pub(crate) fn build() -> Command<'a> {
         // Build the CLI application definition
-        let app = App::new(crate_name!())
+        let app = Command::new(crate_name!())
             .version(crate_version!())
             .author(crate_authors!())
             .about(crate_description!())
-            .global_setting(clap_app_color)
-            .global_setting(AppSettings::PropagateVersion)
-            .global_setting(AppSettings::DisableVersionForSubcommands)
+            .propagate_version(true)
+            .disable_help_subcommand(true)
+            .disable_colored_help(false)
+            .color(
+                env::var_os("NO_COLOR")
+                    .is_none()
+                    .then(|| ColorChoice::Auto)
+                    .unwrap_or(ColorChoice::Never),
+            )
             .arg(
                 Arg::new("force")
                     .long("force")
                     .short('f')
                     .global(true)
-                    .about("Force the action, ignore warnings"),
+                    .help("Force the action, ignore warnings"),
             )
             .arg(
                 Arg::new("no-interact")
@@ -47,7 +48,7 @@ impl<'a> Handler {
                     .alias("no-interactive")
                     .alias("non-interactive")
                     .global(true)
-                    .about("Not interactive, do not prompt"),
+                    .help("Not interactive, do not prompt"),
             )
             .arg(
                 Arg::new("yes")
@@ -55,14 +56,14 @@ impl<'a> Handler {
                     .short('y')
                     .alias("assume-yes")
                     .global(true)
-                    .about("Assume yes for prompts"),
+                    .help("Assume yes for prompts"),
             )
             .arg(
                 Arg::new("quiet")
                     .long("quiet")
                     .short('q')
                     .global(true)
-                    .about("Produce output suitable for logging and automation"),
+                    .help("Produce output suitable for logging and automation"),
             )
             .arg(
                 Arg::new("verbose")
@@ -71,13 +72,13 @@ impl<'a> Handler {
                     .multiple_occurrences(true)
                     .global(true)
                     .takes_value(false)
-                    .about("Enable verbose information and logging"),
+                    .help("Enable verbose information and logging"),
             )
             .arg(
                 Arg::new("gpg-tty")
                     .long("gpg-tty")
                     .global(true)
-                    .about("Instruct GPG to ask passphrase in TTY rather than pinentry"),
+                    .help("Instruct GPG to ask passphrase in TTY rather than pinentry"),
             )
             .subcommand(subcmd::CmdAdd::build())
             .subcommand(subcmd::CmdClone::build())
@@ -197,7 +198,6 @@ impl<'a> Handler {
     pub(crate) fn r#move(&'a self) -> Option<matcher::MoveMatcher> {
         matcher::MoveMatcher::with(&self.matches)
     }
-
 
     /// Get the recipients sub command, if matched.
     pub(crate) fn recipients(&'a self) -> Option<matcher::RecipientsMatcher> {

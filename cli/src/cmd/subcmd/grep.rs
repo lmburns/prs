@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgStore, CmdArg};
 
@@ -6,12 +6,12 @@ use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgStore, CmdArg};
 pub(crate) struct CmdGrep;
 
 impl CmdGrep {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("grep")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("grep")
             .about("Grep through the password store")
             .arg(
                 Arg::new("TERM")
-                    .about("Search term")
+                    .help("Search term")
                     .takes_value(true)
                     .required(true)
             )

@@ -19,7 +19,8 @@ impl Config {
     /// Construct with given binary.
     ///
     /// - `config`: path to `gpg` binary
-    pub fn from(bin: PathBuf) -> Self {
+    #[must_use]
+    pub const fn from(bin: PathBuf) -> Self {
         Self {
             bin,
             gpg_tty: false,

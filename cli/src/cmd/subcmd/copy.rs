@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use crate::cmd::arg::{ArgProperty, ArgQuery, ArgStore, ArgTimeout, CmdArg};
 
@@ -6,8 +6,8 @@ use crate::cmd::arg::{ArgProperty, ArgQuery, ArgStore, ArgTimeout, CmdArg};
 pub(crate) struct CmdCopy;
 
 impl CmdCopy {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("copy")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("copy")
             .alias("cp")
             .alias("c")
             .alias("yank")
@@ -18,7 +18,7 @@ impl CmdCopy {
                 Arg::new("all")
                     .long("all")
                     .short('a')
-                    .about("Copy whole secret, not just first line"),
+                    .help("Copy whole secret, not just first line"),
             )
             .arg(ArgQuery::build())
             .arg(ArgTimeout::build())

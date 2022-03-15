@@ -1,11 +1,11 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 /// The tomb open command definition.
 pub(crate) struct CmdOpen;
 
 impl CmdOpen {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("open")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("open")
             .alias("o")
             .alias("lock")
             .about("Open tomb")
@@ -15,7 +15,7 @@ impl CmdOpen {
                     .short('t')
                     .alias("time")
                     .value_name("TIME")
-                    .about("Time after which to close the Tomb"),
+                    .help("Time after which to close the Tomb"),
             )
     }
 }

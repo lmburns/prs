@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 use once_cell::sync::Lazy;
 
 use crate::util::time;
@@ -10,8 +10,8 @@ static TIMER_DEFAULT: Lazy<String> = Lazy::new(|| time::format_duration(prs_lib:
 pub(crate) struct CmdInit;
 
 impl CmdInit {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("init")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("init")
             .alias("initialize")
             .about("Initialize tomb in-place for current password store")
             .arg(
@@ -21,7 +21,7 @@ impl CmdInit {
                     .alias("time")
                     .value_name("TIME")
                     .default_value(&TIMER_DEFAULT)
-                    .about("Time after which to close the Tomb"),
+                    .help("Time after which to close the Tomb"),
             )
     }
 }

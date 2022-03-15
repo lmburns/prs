@@ -268,8 +268,19 @@ available right now. Feel free to contribute.
 Make sure you meet and install the 'Run' [requirements](#requirements).
 
 See the operating system/distribution specific instructions below:
-- [Linux: Arch](#linux-arch-aur-packages)
+- [Linux](#linux-all-distributions)
+- [Windows](#windows)
 - [Other](#other) _(other Linux's, macOS)_
+
+### Linux (all distributions)
+Limited installation options are currently available. See the list below.
+Alternatively you may install it manually using the
+[prebuilt binaries](#linux-prebuilt-binaries).
+
+Only 64-bit (`x86_64`) packages and binaries are provided.
+For other architectures and configurations you may [compile from source](#build).
+
+More packages options will be coming soon.
 
 #### Linux: Arch AUR packages
 
@@ -285,6 +296,64 @@ sudo pacman -S prs
 
 prs --help
 ```
+
+#### Linux: Prebuilt binaries
+Check out the [latest release][github-latest-release] assets for Linux binaries.  
+Use the `prs-v*-linux-x64-static` binary, to minimize the chance for issues.
+If it isn't available yet, you may use an artifact from a
+[previous version][github-releases] instead, until it is available.
+
+Make sure you meet and install the [requirements](#requirements) before you
+continue.
+
+You must make the binary executable, and may want to move it into
+`/usr/local/bin` to make it easily executable:
+
+```bash
+# Rename binary to prs
+mv ./prs-* ./prs
+
+# Mark binary as executable
+chmod a+x ./prs
+
+# Move binary into path, to make it easily usable
+sudo mv ./prs /usr/local/bin/
+
+prs
+```
+
+### Windows
+Using the [`scoop` package](#windows-scoop-package) is recommended.  
+Alternatively you may install it manually using the
+[prebuilt binaries](#windows-prebuilt-binaries).
+
+If you're using the [Windows Subsystem for Linux][wsl], it's highly recommended
+to install the [prebuilt Linux binary](#prebuilt-binaries-for-linux) instead.
+
+Only 64-bit (`x86_64`) binaries are provided.
+For other architectures and configurations you may [compile from source](#build).
+
+#### Windows: scoop package
+Make sure you've [`scoop`][scoop-install] installed, and run:
+
+```bash
+scoop install prs
+prs
+```
+
+#### Windows: Prebuilt binaries
+Check out the [latest release][github-latest-release] assets for Windows binaries.
+Use the `prs-v*-windows` binary.
+If it isn't available yet, you may use an artifact from a
+[previous version][github-releases] instead, until it is available.
+
+You can use `prs` from the command line in the same directory:
+```cmd
+.\prs.exe
+```
+
+To make it globally invokable as `prs`, you must make the binary available in
+your systems `PATH`.
 
 #### Other
 
@@ -313,7 +382,7 @@ mv ./prs /usr/local/bin/prs
 
 To build and install `prs` yourself, you need the following:
 
-- Rust 1.53 or newer
+- Rust 1.54 or newer
 - The 'Build' [requirements](#requirements).
 
 _Not all features are supported on macOS or Windows. The default configuration
@@ -668,17 +737,21 @@ The library portion of this project is licensed under the GNU LGPL-3.0 license.
 Check out the [lib/LICENSE](lib/LICENSE) file for more information.
 
 [git]: https://git-scm.com/
+[github-latest-release]: https://github.com/timvisee/prs/releases/latest
 [github-release-latest]: https://github.com/timvisee/prs/releases/latest
+[github-releases]: https://github.com/timvisee/prs/releases
 [gitlab-packages]: https://gitlab.com/timvisee/prs/-/packages
 [gitlab-releases]: https://gitlab.com/timvisee/prs/-/releases
 [gpg]: https://gnupg.org/
 [linux-notifications]: https://wiki.archlinux.org/index.php/Desktop_notifications
 [pass-compatible-clients]: https://www.passwordstore.org#other
 [pass]: https://www.passwordstore.org/
+[scoop-install]: https://scoop.sh/#installs-in-seconds
 [skim]: https://github.com/lotabout/skim
+[tomb-faq]: #what-is-tomb
 [tomb-install]: https://github.com/dyne/Tomb/blob/master/INSTALL.md
 [tomb]: https://www.dyne.org/software/tomb/
 [usage-demo-asciinema]: https://asciinema.org/a/368611
 [usage-demo-svg]: ./res/demo.svg
+[wsl]: https://docs.microsoft.com/en-us/windows/wsl/install-win10
 [xkcd538]: https://xkcd.com/538/
-[tomb-faq]: #what-is-tomb

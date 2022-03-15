@@ -33,7 +33,7 @@ pub struct Context {
 
 impl Context {
     /// Construct context from GPG config.
-    fn from(config: Config) -> Self {
+    const fn from(config: Config) -> Self {
         Self { config }
     }
 }
@@ -45,16 +45,16 @@ impl IsContext for Context {
             .iter()
             .map(|key| key.fingerprint(false))
             .collect();
-        let fingerprints: Vec<&str> = fingerprints.iter().map(|fp| fp.as_str()).collect();
-        raw::encrypt(&self.config, &fingerprints, plaintext)
+        let fingerprints: Vec<&str> = fingerprints.iter().map(String::as_str).collect();
+        raw::encrypt(&self.config, &fingerprints, &plaintext)
     }
 
     fn decrypt(&mut self, ciphertext: Ciphertext) -> Result<Plaintext> {
-        raw::decrypt(&self.config, ciphertext)
+        raw::decrypt(&self.config, &ciphertext)
     }
 
     fn can_decrypt(&mut self, ciphertext: Ciphertext) -> Result<bool> {
-        raw::can_decrypt(&self.config, ciphertext)
+        raw::can_decrypt(&self.config, &ciphertext)
     }
 
     fn keys_public(&mut self) -> Result<Vec<Key>> {
@@ -112,7 +112,7 @@ fn test_gpg_compat(config: &Config) -> Result<()> {
         .lines()
         .next()
         .and_then(|stdout| stdout.trim().strip_prefix("gpg (GnuPG) "))
-        .map(|stdout| stdout.trim())
+        .map(str::trim)
         .ok_or(Err::UnexpectedOutput)?;
 
     // Assert minimum version number

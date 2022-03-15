@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 use data_encoding::BASE32_NOPAD;
 use prs_lib::otp::has_uri;
 
@@ -8,8 +8,8 @@ use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, ArgQuery, CmdArg};
 pub(crate) struct CmdAdd;
 
 impl CmdAdd {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("add")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("add")
             .alias("a")
             .about("Add an otp code")
             .arg(
@@ -20,7 +20,7 @@ impl CmdAdd {
                     .required(false)
                     .alias("file")
                     .alias("service")
-                    .about("Name of the account/file"),
+                    .help("Name of the account/file"),
             )
             .arg(
                 Arg::new("KEY")
@@ -29,7 +29,7 @@ impl CmdAdd {
                     .alias("secret")
                     .takes_value(true)
                     .required_unless_present("uri")
-                    .about("Secret key of the OTP")
+                    .help("Secret key of the OTP")
                     .validator(|p| {
                         BASE32_NOPAD
                             .decode(p.to_uppercase().as_bytes())
@@ -44,7 +44,7 @@ impl CmdAdd {
                     .short('u')
                     .conflicts_with("KEY")
                     .takes_value(true)
-                    .about("URI format of OTP")
+                    .help("URI format of OTP")
                     .validator(|p| {
                         if has_uri(p) {
                             Ok(())
@@ -60,7 +60,7 @@ impl CmdAdd {
                     .value_name("NUM")
                     .takes_value(false)
                     .conflicts_with("hotp")
-                    .about("Specify period/interval that account resets")
+                    .help("Specify period/interval that account resets")
                     .validator(|p| {
                         p.parse::<u64>()
                             .map_err(|_| "must be a positive number")
@@ -73,13 +73,13 @@ impl CmdAdd {
                     .long("totp")
                     .takes_value(false)
                     .conflicts_with("hotp")
-                    .about("Time based account (default)"),
+                    .help("Time based account (default)"),
             )
             .arg(
                 Arg::new("hotp")
                     .long("hotp")
                     .takes_value(false)
-                    .about("Counter based account"),
+                    .help("Counter based account"),
             )
             .arg(
                 Arg::new("algorithm")
@@ -88,7 +88,7 @@ impl CmdAdd {
                     .takes_value(true)
                     .possible_values(&["SHA1", "SHA256", "SHA384", "SHA512", "SHA512_256"])
                     .value_name("ALGORITHM")
-                    .about("Algorithm to use to generate the OTP code"),
+                    .help("Algorithm to use to generate the OTP code"),
             )
             .arg(ArgAllowDirty::build())
             .arg(ArgNoSync::build())

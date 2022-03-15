@@ -144,6 +144,7 @@ fn remove_confirm(
 ///
 /// Collect all secrets that are a symlink which target the given `secret`.
 #[cfg(feature = "alias")]
+#[allow(clippy::field_reassign_with_default)]
 pub(crate) fn find_symlinks_to(store: &Store, secret: &Secret) -> Vec<Secret> {
     // Configure secret iterator to only find symlinks
     let mut config = SecretIterConfig::default();
@@ -205,12 +206,10 @@ fn remove_empty_dir(path: &Path, remove_empty_parents: bool) -> Result<(), io::E
     let is_empty = WalkDir::new(&path)
         .follow_links(true)
         .into_iter()
-        .filter(|entry| match entry {
+        .any(|entry| match entry {
             Ok(entry) => entry.file_type().is_file(),
             Err(_) => true,
-        })
-        .next()
-        .is_some();
+        });
     if is_empty {
         return Ok(());
     }

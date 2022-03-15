@@ -88,7 +88,7 @@ pub(crate) fn copy_timeout(data: &[u8], timeout: u64, report: bool) -> Result<()
 /// Forks & detaches two processes to set/keep clipboard contents and to drive
 /// the timeout.
 ///
-/// Based on: <https://docs.rs/copypasta-ext/0.3.4/copypasta_ext/x11_fork/index.html/>
+/// Based on: <https://docs.rs/copypasta-ext/0.3.4/copypasta_ext/x11_fork/index.html>
 #[cfg(all(
     unix,
     not(any(target_os = "macos", target_os = "android", target_os = "emscripten")),

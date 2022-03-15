@@ -1,16 +1,20 @@
-use std::fs;
-use std::path::{Path, PathBuf};
-use std::ffi::OsStr;
+use std::{
+    ffi::OsStr,
+    fs,
+    path::{Path, PathBuf},
+};
 
 use anyhow::Result;
 use clap::ArgMatches;
 use prs_lib::{Secret, Store};
 use thiserror::Error;
 
-use crate::cmd::matcher::{alias::AliasMatcher, MainMatcher, Matcher};
 #[cfg(all(feature = "tomb", target_os = "linux"))]
 use crate::util::tomb;
-use crate::util::{cli, error, select, sync};
+use crate::{
+    cmd::matcher::{alias::AliasMatcher, MainMatcher, Matcher},
+    util::{cli, error, select, sync},
+};
 
 /// Alias secret action.
 pub(crate) struct Alias<'a> {
@@ -99,12 +103,18 @@ impl<'a> Alias<'a> {
 
 /// Create an alias.
 ///
-/// Create an alias (symlink) file at `place_at` for a symlink at `dst` which points to `src`.
+/// Create an alias (symlink) file at `place_at` for a symlink at `dst` which
+/// points to `src`.
 ///
 /// `dst` and `place_at` are usually the same.
-/// This may be different to use the correct relative symlink path for a secret at `place_at` that
-/// will be moved to `dst` in the future.
-pub(crate) fn create_alias(store: &Store, src: &Secret, dst: &Path, place_at: &Path) -> Result<(), Err> {
+/// This may be different to use the correct relative symlink path for a secret
+/// at `place_at` that will be moved to `dst` in the future.
+pub(crate) fn create_alias(
+    store: &Store,
+    src: &Secret,
+    dst: &Path,
+    place_at: &Path,
+) -> Result<(), Err> {
     create_symlink(secret_link_path(store, src, dst)?, place_at)
 }
 
@@ -128,8 +138,8 @@ where
 
 /// Determine symlink path to use.
 ///
-/// This function determines what path to provide when creating a symlink at `dst`, which links to
-/// `src`.
+/// This function determines what path to provide when creating a symlink at
+/// `dst`, which links to `src`.
 fn secret_link_path(store: &Store, src: &Secret, dst: &Path) -> Result<PathBuf, Err> {
     let target = src
         .relative_path(&store.root)
@@ -141,15 +151,16 @@ fn secret_link_path(store: &Store, src: &Secret, dst: &Path) -> Result<PathBuf, 
     for _ in 0..depth {
         path = path.join("..");
     }
-    Ok(path.join(target.to_path_buf()))
+    Ok(path.join(target))
 }
 
 /// Find path depth in the given store.
 ///
-/// Finds the depth (in matter of directories) of a secret path in the given store.
+/// Finds the depth (in matter of directories) of a secret path in the given
+/// store.
 ///
-/// Returns an error if the depth could not be determined, possibly because the given file is not
-/// in the given root.
+/// Returns an error if the depth could not be determined, possibly because the
+/// given file is not in the given root.
 ///
 /// Returns `0` if the given secret is in the store root.
 fn path_depth(store: &Store, mut path: &Path) -> Result<u16, Err> {

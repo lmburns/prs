@@ -1,8 +1,10 @@
 //! Command helpers for raw interface.
 
-use std::ffi::OsStr;
-use std::io::Write;
-use std::process::{Command, ExitStatus, Output, Stdio};
+use std::{
+    ffi::OsStr,
+    io::Write,
+    process::{Command, ExitStatus, Output, Stdio},
+};
 
 use anyhow::Result;
 use thiserror::Error;
@@ -126,8 +128,8 @@ fn cmd_assert_status(status: ExitStatus) -> Result<()> {
 
 /// Try to parse command output bytes as text.
 ///
-/// Command output formatting might not always be consistent. This function tries to parse both as
-/// UTF-8 and UTF-16.
+/// Command output formatting might not always be consistent. This function
+/// tries to parse both as UTF-8 and UTF-16.
 fn parse_output(bytes: &[u8]) -> Result<String, std::str::Utf8Error> {
     // Try to parse as UTF-8, remember error on failure
     let err = match std::str::from_utf8(bytes) {
@@ -151,13 +153,14 @@ fn u8_as_utf16(bytes: &[u8]) -> Option<String> {
     }
 
     // Transmute to u16 slice, try to parse
+    #[allow(clippy::cast_ptr_alignment)]
     let bytes: &[u16] =
-        unsafe { std::slice::from_raw_parts(bytes.as_ptr() as *const u16, bytes.len() / 2) };
+        unsafe { std::slice::from_raw_parts(bytes.as_ptr().cast::<u16>(), bytes.len() / 2) };
     String::from_utf16(bytes).ok()
 }
 
 #[derive(Debug, Error)]
-pub enum Err {
+pub(crate) enum Err {
     #[error("failed to complete gpg operation")]
     GpgCli(#[source] anyhow::Error),
 

@@ -1,4 +1,4 @@
-use clap::{App, Arg};
+use clap::{Command, Arg};
 
 use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg};
 
@@ -6,8 +6,8 @@ use crate::cmd::arg::{ArgAllowDirty, ArgNoSync, CmdArg};
 pub(crate) struct CmdRemove;
 
 impl CmdRemove {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("remove")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("remove")
             .alias("rm")
             .alias("delete")
             .alias("del")
@@ -16,7 +16,7 @@ impl CmdRemove {
                 Arg::new("recrypt")
                     .long("recrypt")
                     .alias("reencrypt")
-                    .about("Re-encrypting all secrets"),
+                    .help("Re-encrypting all secrets"),
             )
             .arg(ArgAllowDirty::build())
             .arg(ArgNoSync::build())

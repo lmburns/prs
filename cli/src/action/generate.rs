@@ -104,7 +104,7 @@ impl<'a> Generate<'a> {
                     .and_then(|p| p.except_first_line())
                     .map_err(Err::Read)?;
                 if !existing.is_empty() {
-                    plaintext.append(existing, true);
+                    plaintext.append(&existing, true);
                 }
             }
         }
@@ -112,7 +112,7 @@ impl<'a> Generate<'a> {
         // Append from stdin
         if matcher_generate.stdin() {
             let extra = stdin::read_plaintext(!matcher_main.quiet())?;
-            plaintext.append(extra, true);
+            plaintext.append(&extra, true);
         }
 
         // Edit in editor
@@ -191,6 +191,7 @@ impl<'a> Generate<'a> {
 ///
 /// This generates a secure random password/passphrase based on user
 /// configuration.
+#[allow(clippy::field_reassign_with_default)]
 fn generate_password(matcher_generate: &GenerateMatcher) -> Plaintext {
     if matcher_generate.passphrase() {
         let mut config = BasicConfig::default();

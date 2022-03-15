@@ -78,32 +78,38 @@ impl Store {
     }
 
     /// Get a sync helper for this store.
-    pub fn sync(&self) -> Sync {
+    #[must_use]
+    pub const fn sync(&self) -> Sync {
         Sync::new(self)
     }
 
     /// Get a tomb helper for this store.
+    #[must_use]
     #[cfg(all(feature = "tomb", target_os = "linux"))]
-    pub fn tomb(&self, quiet: bool, verbose: bool, force: bool) -> Tomb {
+    pub const fn tomb(&self, quiet: bool, verbose: bool, force: bool) -> Tomb {
         Tomb::new(self, quiet, verbose, force)
     }
 
     /// Create secret iterator for this store.
+    #[must_use]
     pub fn secret_iter(&self) -> SecretIter {
         self.secret_iter_config(SecretIterConfig::default())
     }
 
     /// Create secret iterator for this store with custom configuration.
+    #[must_use]
     pub fn secret_iter_config(&self, config: SecretIterConfig) -> SecretIter {
         SecretIter::new(self.root.clone(), config)
     }
 
     /// List store password secrets.
+    #[must_use]
     pub fn secrets(&self, filter: Option<String>) -> Vec<Secret> {
         self.secret_iter().filter_name(filter).collect()
     }
 
     /// Try to find matching secret at path.
+    #[must_use]
     pub fn find_at(&self, path: &str) -> Option<Secret> {
         // Build path
         let path = self.root.as_path().join(path);
@@ -129,6 +135,7 @@ impl Store {
     /// If secret is found at exact query path, `FindSecret::Found` is returned.
     /// Otherwise any number of closely matching secrets is returned as
     /// `FindSecret::Many`.
+    #[must_use]
     pub fn find(&self, query: Option<String>) -> FindSecret {
         // Try to find exact secret match
         if let Some(query) = &query {
@@ -142,6 +149,7 @@ impl Store {
     }
 
     /// Check for 'sneaky' paths found within the password store
+    #[allow(clippy::unused_self)]
     pub fn check_sneaky_paths<P: AsRef<Path>>(&self, path: P) -> Result<(), Err> {
         let path = path.as_ref();
         if SNEAKY_RE
@@ -185,8 +193,7 @@ impl Store {
                 .as_ref()
                 .to_str()
                 .and_then(|s| s.chars().last())
-                .map(path::is_separator)
-                .unwrap_or(false);
+                .map_or(false, path::is_separator);
 
         // Strip store prefix
         if let Ok(tmp) = path.strip_prefix(&self.root) {
@@ -247,17 +254,18 @@ pub struct Secret {
 
 impl Secret {
     /// Construct secret at given full path from given store.
+    #[must_use]
     pub fn from(store: &Store, path: PathBuf) -> Self {
         Self::in_root(&store.root, path)
     }
 
     /// Construct secret at given path in the given password store root.
+    #[must_use]
     pub fn in_root(root: &Path, path: PathBuf) -> Self {
         let name: String = relative_path(root, &path)
             .ok()
-            .and_then(|f| f.to_str())
-            .map(|f| f.trim_end_matches(SECRET_SUFFIX))
-            .unwrap_or_else(|| "?")
+            .and_then(Path::to_str)
+            .map_or("?", |f| f.trim_end_matches(SECRET_SUFFIX))
             .to_string();
         Self { name, path }
     }
@@ -276,21 +284,21 @@ impl Secret {
     /// If this secret is not an alias, an error will be returned.
     ///
     /// The pointed to secret may be an alias as well.
-    pub fn alias_target(&self, store: &Store) -> Result<Secret> {
+    pub fn alias_target(&self, store: &Store) -> Result<Self> {
         // Read alias target path, make absolute, attempt to canonicalize
         let mut path = self.path.parent().unwrap().join(fs::read_link(&self.path)?);
         if let Ok(canonical_path) = path.canonicalize() {
             path = canonical_path;
         }
 
-        Ok(Secret::from(store, path))
+        Ok(Self::from(store, path))
     }
 }
 
 /// Get relative path in given root.
 pub fn relative_path<'a>(
     root: &'a Path,
-    path: &'a PathBuf,
+    path: &'a Path,
 ) -> Result<&'a Path, std::path::StripPrefixError> {
     path.strip_prefix(&root)
 }
@@ -333,12 +341,13 @@ pub struct SecretIter {
 
 impl SecretIter {
     /// Create new store secret iterator at given store root.
+    #[must_use]
     pub fn new(root: PathBuf, config: SecretIterConfig) -> Self {
         let walker = WalkDir::new(&root)
             .follow_links(true)
             .into_iter()
             .filter_entry(|e| !is_hidden_subdir(e))
-            .filter_map(|e| e.ok())
+            .filter_map(Result::ok)
             .filter(is_secret_file)
             .filter(move |entry| filter_by_config(entry, &config));
         Self {
@@ -348,6 +357,7 @@ impl SecretIter {
     }
 
     /// Transform into a filtered secret iterator.
+    #[must_use]
     pub fn filter_name(self, filter: Option<String>) -> FilterSecretIter<Self> {
         FilterSecretIter::new(self, filter)
     }
@@ -369,8 +379,7 @@ fn is_hidden_subdir(entry: &DirEntry) -> bool {
         && entry
             .file_name()
             .to_str()
-            .map(|s| s.starts_with('.') || s == "lost+found")
-            .unwrap_or(false)
+            .map_or(false, |s| s.starts_with('.') || s == "lost+found")
 }
 
 /// Check if given WalkDir DirEntry is a secret file.
@@ -379,8 +388,7 @@ fn is_secret_file(entry: &DirEntry) -> bool {
         && entry
             .file_name()
             .to_str()
-            .map(|s| s.ends_with(SECRET_SUFFIX))
-            .unwrap_or(false)
+            .map_or(false, |s| s.ends_with(SECRET_SUFFIX))
 }
 
 /// Check if given WalkDir DirEntry passes the configuration.
@@ -414,17 +422,17 @@ fn filter_by_config(entry: &DirEntry, config: &SecretIterConfig) -> bool {
 /// compatible secret key.
 ///
 /// Returns true if there is no secret.
+#[must_use]
 pub fn can_decrypt(store: &Store) -> bool {
     // Try all proto's here once we support more
     store
         .secret_iter()
         .next()
-        .map(|secret| {
+        .map_or(false, |secret| {
             crypto::context(&crate::CONFIG)
                 .map(|mut context| context.can_decrypt_file(&secret.path).unwrap_or(true))
                 .unwrap_or(false)
         })
-        .unwrap_or(true)
 }
 
 /// Iterator that wraps a `SecretIter` with a filter.
@@ -453,13 +461,15 @@ where
     type Item = Secret;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.filter.is_none() {
-            return self.inner.next();
-        }
+        // Return all with no filter, or lowercase filter text
+        let filter = match &self.filter {
+            None => return self.inner.next(),
+            Some(filter) => filter.to_lowercase(),
+        };
 
-        let filter = self.filter.as_ref().unwrap();
+        // Return each secret matching the filter
         for secret in self.inner.by_ref() {
-            if secret.name.contains(filter) {
+            if secret.name.to_lowercase().contains(&filter) {
                 return Some(secret);
             }
         }

@@ -30,7 +30,6 @@ impl<'a> Remove<'a> {
     }
 
     /// Invoke the OTP action
-    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn invoke(&self) -> Result<()> {
         let _span = tracing::debug_span!("invoking otp remove").entered();
 
@@ -75,7 +74,7 @@ impl<'a> Remove<'a> {
             ) {
                 error::quit();
             }
-            otp_file.delete(account_rm.clone());
+            otp_file.delete(&account_rm);
             if let Err(e) = otp_file.save(&store) {
                 error::print_error(&e);
             }

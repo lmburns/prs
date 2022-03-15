@@ -2,7 +2,7 @@ pub(crate) mod recrypt;
 pub(crate) mod run;
 pub(crate) mod sync_keys;
 
-use clap::{App, AppSettings};
+use clap::Command;
 
 use crate::cmd::arg::{ArgStore, CmdArg};
 
@@ -10,12 +10,12 @@ use crate::cmd::arg::{ArgStore, CmdArg};
 pub(crate) struct CmdHousekeeping;
 
 impl CmdHousekeeping {
-    pub(crate) fn build<'a>() -> App<'a> {
-        App::new("housekeeping")
+    pub(crate) fn build<'a>() -> Command<'a> {
+        Command::new("housekeeping")
             .about("Housekeeping utilities")
             .alias("housekeep")
             .alias("hk")
-            .setting(AppSettings::SubcommandRequiredElseHelp)
+            .subcommand_required(true)
             .subcommand(recrypt::CmdRecrypt::build())
             .subcommand(run::CmdRun::build())
             .subcommand(sync_keys::CmdSyncKeys::build())
